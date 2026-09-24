@@ -31,7 +31,7 @@ def shell(title, content, *, depth=0, demo=False):
                '不可据此购票或前往。</aside>' if demo else '')
     caption = 'DEMO / 虚构活动' if demo else '全国城市 / 来源覆盖有限'
     footer = ('DEMO：仅用于本地界面演示，非真实活动。' if demo else
-              '仅展示人工核实并录入的活动；尚未接入自动采集。')
+              '仅展示已录入且通过字段校验的活动；来源真实性与覆盖范围以公告为准。')
     return f'''<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -78,8 +78,8 @@ def home(city_list, items, demo):
                 + ('<span class="cancelled">已取消</span>' if event["status"] == "cancelled" else '')
                 + '</article>' for event in rows)
         else:
-            cards = ('<p class="empty">暂无已核实活动。当前未接入自动采集；这里不是“活动已结束”或“城市没有漫展”的判断。'
-                     '请稍后查看经人工核实的更新。</p>')
+            cards = ('<p class="empty">暂无已收录活动；不代表城市没有漫展。'
+                     '自动来源需要有效接口权限，覆盖范围以已接入来源为准。</p>')
         sections.append(f'''<section class="city-panel" id="city-{text(code)}" data-panel="{text(code)}">
     <div class="section-heading"><div><p class="eyebrow">CITY / {text(code)}</p><h2>{text(city["name"])}漫展</h2></div>
     <span class="count">{city["event_count"]} 场已录入</span></div>
@@ -91,8 +91,8 @@ def home(city_list, items, demo):
     lead = ('以下均为虚构 DEMO 活动，不代表真实漫展或票务信息。' if demo else
             '选择城市，订阅该市及所辖区县、乡镇已收录的活动。数据来源有限，不能保证完整覆盖。')
     verified = max((event["updated_at"] for event in items), default=None)
-    freshness = ('最近人工核对：' + text(verified) + '（UTC）' if verified else
-                 '尚无已核实活动；没有可报告的最近核对时间。')
+    freshness = ('最近来源观察／人工核对：' + text(verified) + '（UTC）' if verified else
+                 '尚无已收录活动；没有可报告的最近观察时间。')
     content = f'''<section class="hero"><p class="eyebrow">CITY CALENDAR / 全国城市</p>
     <h1>你的漫展日程，<br><em>按城市</em>订阅。</h1><p class="hero-lead">{lead}</p><p class="hint">{freshness}</p></section>
     <label for="city-search">搜索城市／省份</label>
@@ -126,7 +126,7 @@ def detail(event, city, demo):
         <div class="info-row"><dt>场馆</dt><dd>{text(event["venue_name"])}</dd></div>
         <div class="info-row"><dt>地址</dt><dd>{text(event["venue_address"])}</dd></div>
         {guests}{attribution}
-        <div class="info-row"><dt>最近核对</dt><dd><time datetime="{text(event["updated_at"])}">{text(event["updated_at"])}</time>（UTC）</dd></div>
+        <div class="info-row"><dt>最近观察／核对</dt><dd><time datetime="{text(event["updated_at"])}">{text(event["updated_at"])}</time>（UTC）</dd></div>
       </dl>
       <div class="action-links">{links}</div>
       <section class="feed-box"><h2>订阅{text(city["name"])}日历</h2>
