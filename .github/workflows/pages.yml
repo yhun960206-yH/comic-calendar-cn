@@ -30,9 +30,20 @@ jobs:
       - name: Build production site (no demo)
         env:
           BASE_URL: ${{ vars.BASE_URL }}
+          FEC_API_KEY: ${{ secrets.FEC_API_KEY }}
         run: |
           test -n "$BASE_URL" || { echo 'Set repository variable BASE_URL to the real HTTPS Pages URL ending in /'; exit 1; }
-          python3 -m src.build --base-url "$BASE_URL" --input data/events.json --output public
+          INPUT=data/events.json
+          if [ -n "$FEC_API_KEY" ]; then
+            # API or previous checkpoint failure stops the job BEFORE artifact upload.
+            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json --output "$RUNNER_TEMP/fec-events.json"
+            INPUT="$RUNNER_TEMP/fec-events.json"
+          else
+            # Never erase events that an earlier authorized run published.
+            python3 -m src.sources.pipeline --base-url "$BASE_URL" --check-no-key
+            echo 'FEC_API_KEY absent: publishing the existing reviewed input only, no automatic event discovery.'
+          fi
+          python3 -m src.build --base-url "$BASE_URL" --input "$INPUT" --output public
           python3 - <<'PY'
           import json
           from pathlib import Path

@@ -17,7 +17,7 @@ from ..model import CITY_CODES, InputError, check_transition, events, https_url
 
 API = "https://api.furrycons.cn/open/event/"
 SHANGHAI = timezone(timedelta(hours=8))
-MAX_PAGES = 20
+MAX_PAGES = 50
 PAGE_SIZE = 50
 
 
@@ -47,7 +47,12 @@ def fetch_all(key, *, opener=urlopen):
     if total < 0 or total > MAX_PAGES * PAGE_SIZE:
         raise SourceError("FEC result size exceeds configured safety limit")
     rows = list(first["data"])
-    pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+    actual_size = first.get("pageSize", len(rows) or PAGE_SIZE)
+    if type(actual_size) is not int or actual_size < 1 or actual_size > PAGE_SIZE:
+        raise SourceError("FEC returned an unsupported pagination size")
+    pages = max(1, (total + actual_size - 1) // actual_size)
+    if pages > MAX_PAGES:
+        raise SourceError("FEC pagination exceeds safety limit")
     for page in range(2, pages + 1):
         rows.extend(fetch_page(key, page, opener=opener)["data"])
     if len(rows) < total or (total and not rows):
