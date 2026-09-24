@@ -1,0 +1,19 @@
+# Python runtime
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+# JS runtime and builds
+node_modules/
+dist/
+build/
+public/
+*.zip
+# OS and IDE
+.DS_Store
+.idea/
+.vscode/
+# Secrets and logs
+.env*
+*.log

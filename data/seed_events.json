@@ -1,0 +1,35 @@
+{
+  "events": [
+    {
+      "event_id": "demo-beijing-001",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "110100",
+      "title": "DEMO 演示漫展（虚构，勿购票）",
+      "start_date": "2030-05-01",
+      "end_date": "2030-05-03",
+      "updated_at": "2029-12-01T00:00:00Z",
+      "venue_name": "DEMO 虚构展馆",
+      "venue_address": "北京市演示区虚构路 1 号（非真实场地）",
+      "ticket_url": "https://example.com/demo-ticket",
+      "map_url": "https://example.com/demo-map",
+      "source_url": "https://example.com/demo-announcement",
+      "guests": ["DEMO 虚构嘉宾"]
+    },
+    {
+      "event_id": "demo-shanghai-001",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "310100",
+      "title": "DEMO 演示活动（虚构，勿前往）",
+      "start_date": "2030-06-01",
+      "end_date": "2030-06-02",
+      "updated_at": "2029-12-01T00:00:00Z",
+      "venue_name": "DEMO 虚构会场",
+      "venue_address": "上海市演示区虚构街 2 号（非真实场地）",
+      "ticket_url": "https://example.com/demo-ticket",
+      "map_url": "https://example.com/demo-map",
+      "source_url": "https://example.com/demo-announcement"
+    }
+  ]
+}
