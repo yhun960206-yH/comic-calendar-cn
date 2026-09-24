@@ -14,7 +14,7 @@ CITY_CODES = {row["code"]: row["name"] for row in json.loads(
 AREA_TO_CITY = json.loads((ROOT / "config/area_to_city.json").read_text(encoding="utf-8"))["area_to_city"]
 REQUIRED = {"event_id", "revision", "status", "city_code", "title", "start_date",
             "end_date", "updated_at", "venue_name", "venue_address", "source_url"}
-OPTIONAL = {"guests", "ticket_url", "map_url", "start_at", "end_at", "area_code"}
+OPTIONAL = {"guests", "ticket_url", "map_url", "start_at", "end_at", "area_code", "attribution"}
 ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]*\Z")
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
 TIME_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\Z")
@@ -109,6 +109,8 @@ def events(path):
             raise InputError(f"{label}.revision must be a nonnegative integer")
         for field in ("title", "venue_name", "venue_address"):
             _text(event[field], f"{label}.{field}")
+        if "attribution" in event:
+            _text(event["attribution"], f"{label}.attribution")
         https_url(event["source_url"], f"{label}.source_url")
         for field in ("ticket_url", "map_url"):
             if field in event and event[field] is not None:
