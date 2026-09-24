@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from src import build, history
-from src.model import InputError, events
+from src.model import AREA_TO_CITY, CITY_CODES, InputError, events
 
 
 BASE = "https://example.github.io/comic-calendar/"
@@ -54,7 +54,8 @@ class BuildTests(unittest.TestCase):
         payload = json.loads((self.output / "events.json").read_text())
         self.assertFalse(payload["demo"])
         self.assertEqual(payload["events"], [])
-        self.assertEqual(payload["cities"][1]["feed_url"], BASE + "feeds/cities/310100.ics")
+        self.assertEqual(next(c for c in payload["cities"] if c["code"] == "310100")["feed_url"], BASE + "feeds/cities/310100.ics")
+        self.assertGreater(len(payload["cities"]), 350)
         self.assertEqual(json.loads((self.output / "status.json").read_text())["event_count"], 0)
         home = (self.output / "index.html").read_text(encoding="utf-8")
         self.assertIn("暂无已核实活动", home)
@@ -176,6 +177,21 @@ class BuildTests(unittest.TestCase):
         self.write_events([sample(revision=1, status="cancelled", updated_at="2029-12-02T00:00:00Z")])
         self.publish()
         self.write_events([sample(revision=2, status="confirmed", updated_at="2029-12-03T00:00:00Z")])
+        with self.assertRaises(InputError):
+            self.publish()
+
+    def test_national_area_catalog_retains_old_links(self):
+        self.assertGreater(len(CITY_CODES), 350)
+        self.assertEqual(AREA_TO_CITY['110101001000'], '110100')
+        self.assertEqual(AREA_TO_CITY['440305001000'], '440300')
+        self.assertIn('441900', CITY_CODES)  # 东莞不设县级行政层
+        self.assertIn('469001', CITY_CODES)  # 省直管县级市
+
+    def test_township_is_attributed_to_parent_city(self):
+        self.write_events([sample(area_code="110101001000")])
+        self.publish()
+        self.assertEqual(self.feed("110100").count(b"BEGIN:VEVENT"), 1)
+        self.write_events([sample(area_code="110101001000", city_code="310100")])
         with self.assertRaises(InputError):
             self.publish()
 

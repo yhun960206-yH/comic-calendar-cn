@@ -1,10 +1,10 @@
-# 北京 / 上海漫展日历订阅
+# 全国城市漫展日历订阅（数据源待接入）
 
 **已部署站点：** https://yhun960206-yh.github.io/comic-calendar-cn/
 
-**订阅链接：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。首次手动 Pages 部署成功（[Actions 运行记录](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36011722506)）；定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
+**订阅链接示例：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。首次手动 Pages 部署成功（[Actions 运行记录](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36011722506)）；新增全国城市版本尚待部署验证，定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
 
-Python 3 标准库构建的静态首页、活动详情页、每城市完整 ICS 订阅与 JSON。**当前 `data/events.json` 为空，没有已核实的真实活动；尚未接入自动采集。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。定时工作流只重新发布仓库内人工核实的真实文件，不会自动发现或核对新活动。
+Python 3 标准库构建的静态首页、活动详情页、372 个城市级聚合订阅源与 JSON。城市订阅包含所属区县、乡镇与街道的活动，前提是活动来源提供可核对的具体地点。行政区划快照不等于活动来源，不保证全国活动全量覆盖。**当前 `data/events.json` 为空，没有已核实的真实活动；尚未接入自动采集。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。定时工作流只重新发布仓库内人工核实的真实文件，不会自动发现或核对新活动。
 
 ## 本地验证和预览
 
@@ -21,7 +21,7 @@ python3 -m http.server 8000 --directory public
 
 本地独立演示请输出到单独目录：`python3 -m src.build --base-url https://example.github.io/demo/ --output /tmp/comic-calendar-demo --demo`。演示首页、详情页、JSON 和 ICS 都显著标注 DEMO；**不得用 `--demo` 发布到 Pages**。`--demo` 才默认读取 `data/seed_events.json`，平常只读取 `data/events.json`。`--input` 可指定本地已审核的 JSON（显式覆盖默认或演示文件），但 seed 文件必须搭配 `--demo`；构建器不联网。`python3 -m src.validate --input path/to/events.json` 可单独验证。
 
-首页选择北京/上海后可查看活动和复制相应的 HTTPS 绝对 ICS 地址；没有 JS 时两座城市都能直接查看。详情页显示活动日期、地点、嘉宾（如有）、UTC 核对时间、票务/导航及公告来源；日期展示为含首尾日，输入 `end_date` 则排他。无已核实活动时会直说，无虚构卡片或票务按钮。活动文本经 HTML 转义，链接在离线验证后输出。网站支持 `https://域名/仓库名/` 等子路径部署。
+首页搜索/选择城市后可查看活动和复制相应的 HTTPS 绝对 ICS 地址；没有 JS 时各城市链接仍能直接访问。详情页显示活动日期、地点、嘉宾（如有）、UTC 核对时间、票务/导航及公告来源；日期展示为含首尾日，输入 `end_date` 则排他。无已核实活动时会直说，无虚构卡片或票务按钮。活动文本经 HTML 转义，链接在离线验证后输出。网站支持 `https://域名/仓库名/` 等子路径部署。
 
 ## GitHub Pages 配置（需仓库管理员完成）
 
@@ -30,18 +30,19 @@ python3 -m http.server 8000 --directory public
 3. `.github/workflows/pages.yml` 只允许从仓库默认分支部署（手动选择其他分支的运行会跳过构建）；另请在 `github-pages` 环境限制部署分支为默认分支作为纵深防护。支持手动运行及每天 UTC 03:17/15:17 的非整点定时运行；GitHub 定时可能延迟或跳过。工作流先验证真实输入、比对完整 Git 历史中该文件的各个版本、跑测试，随后以 `--input data/events.json`（不传 `--demo`）构建并核验 `demo: false`，同一工作流上传并部署 Pages artifact。部署作业仅需 `pages: write`、`id-token: write`；构建仅读仓库。`github-pages` 环境如设置审批规则，须由管理员批准。Git 历史校验依赖完整历史，请勿改写默认分支历史；初次部署前应确认此前未经工具发布的活动已经进入版本库历史。不要把 `data/seed_events.json` 手动复制到 `public/`。
 4. 已核对首次手动运行成功：站点与北京、上海订阅链接返回 HTTP 200，`.ics` 为 `text/calendar`；页面当前无真实活动。后续每次上线仍须核对实际工作流与链接，手机端刷新与取消行为尚待实测。
 
-没有已授权来源或新活动时只发布已人工核实的 `data/events.json`（目前空）。此流程不抓取网页；新增任何自动采集前应单独核实数据源许可、审核流程及真实性。
+没有可用的自动数据来源时只发布 `data/events.json`（目前空）。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但未提供适用的数据接口许可或密钥。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
 
 ## 真实活动人工录入契约
 
-`config/cities.json` 固定北京 `110100`、上海 `310100`。`data/events.json` 为 `{ "events": [ ... ] }`；没有核实的活动就保留空数组。以下字段每条均必填，除 `revision` 外为字符串：
+`config/cities.json` 包含 372 个城市级聚合单位（含直辖市、省直管县级市），保留北京 `110100`、上海 `310100` 既有链接。`config/area_to_city.json` 映射 4.2 万余省市区县、乡镇/街道代码到所属城市，乡镇活动按所属城市汇总。来源为 [huazone/regions_data](https://github.com/huazone/regions_data) 2025-12-24 快照，MIT 许可见 `licenses/regions_data.LICENSE`；行政变更需人工核对并更新快照，未覆盖或歧义地点不得猜测城市。`data/events.json` 为 `{ "events": [ ... ] }`；没有核实的活动就保留空数组。以下字段每条均必填，除 `revision` 外为字符串：
 
 | 字段 | 规则 |
 | --- | --- |
 | `event_id` | 全局唯一永久不变，小写 ASCII `[a-z0-9][a-z0-9._-]*`；改期/取消不换 ID |
 | `revision` | 非负整数；每次修改已发布活动递增，映射 ICS `SEQUENCE`；不能回退 |
 | `status` | `confirmed` 或 `cancelled`；仅录入已核实活动；已发布活动取消时保留原记录并标为 `cancelled`，不能直接删除 |
-| `city_code` | `110100` / `310100` |
+| `city_code` | `config/cities.json` 中的城市级订阅代码；区县乡镇活动归属其所属城市 |
+| `area_code` | 可选；可核对的 12 位省/市/区县/乡镇代码，必须能映射到同一 `city_code` |
 | `title` | 核实的名称，非空 |
 | `start_date` / `end_date` | `YYYY-MM-DD`，结束日**排他**，例如 5 月 1–2 日写 2030-05-01 到 2030-05-03；无开放时间则输出全天事件 |
 | `updated_at` | 最近人工核对/修订时间，UTC `YYYY-MM-DDTHH:MM:SSZ`；变更后更新 |
@@ -55,7 +56,7 @@ python3 -m http.server 8000 --directory public
 
 ## 输出与发布约束
 
-`public/feeds/cities/110100.ics` 和 `310100.ics` 即使零活动也每次生成完整日历。事件 UID 为 `<event_id>@comic-calendar.invalid`，`SEQUENCE` 用修订号，取消使用 `STATUS:CANCELLED`、标题标记已取消并保持 UID；全天事件使用排他的 DTEND；已核实开放时间时写入精确 UTC DTSTART/DTEND。ICS 为 UTF-8 CRLF、RFC 5545 文本转义和 75-octet 内容行折行。发布过的取消记录继续留在源文件以传播给订阅用户。
+`public/feeds/cities/{city_code}.ics` 为每个支持的城市单位生成完整日历，即使零活动。事件 UID 为 `<event_id>@comic-calendar.invalid`，`SEQUENCE` 用修订号，取消使用 `STATUS:CANCELLED`、标题标记已取消并保持 UID；全天事件使用排他的 DTEND；已核实开放时间时写入精确 UTC DTSTART/DTEND。ICS 为 UTF-8 CRLF、RFC 5545 文本转义和 75-octet 内容行折行。发布过的取消记录继续留在源文件以传播给订阅用户。
 
 `public/events.json` 为 `{ "demo": boolean, "cities": [{"code", "name", "feed_url", "event_count"}], "events": [输入活动...] }`；`public/status.json` 为 `{ "ok": true, "demo": boolean, "event_count": number, "last_verified_at": UTC时间或null, "cities": [同上] }`。首页显示最近人工核对时间（不是最后成功部署时间）。订阅 URL 是从 HTTPS `--base-url` 拼接的绝对地址。`--demo` 时两个 JSON 的 `demo` 为 true，ICS 日历名与每条摘要/描述均有 DEMO 标记，页面也有显著警示。
 

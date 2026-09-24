@@ -8,10 +8,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 
-CITY_CODES = {"110100": "北京", "310100": "上海"}
+ROOT = Path(__file__).resolve().parent.parent
+CITY_CODES = {row["code"]: row["name"] for row in json.loads(
+    (ROOT / "config/cities.json").read_text(encoding="utf-8"))["cities"]}
+AREA_TO_CITY = json.loads((ROOT / "config/area_to_city.json").read_text(encoding="utf-8"))["area_to_city"]
 REQUIRED = {"event_id", "revision", "status", "city_code", "title", "start_date",
             "end_date", "updated_at", "venue_name", "venue_address", "source_url"}
-OPTIONAL = {"guests", "ticket_url", "map_url", "start_at", "end_at"}
+OPTIONAL = {"guests", "ticket_url", "map_url", "start_at", "end_at", "area_code"}
 ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]*\Z")
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}\Z")
 TIME_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\Z")
@@ -41,10 +44,15 @@ def read_json(path):
 
 def cities(path):
     data = read_json(path)
-    expected = [{"code": code, "name": name} for code, name in CITY_CODES.items()]
-    if data != {"cities": expected}:
-        raise InputError("cities.json must list exactly Beijing 110100 and Shanghai 310100")
-    return expected
+    if (not isinstance(data, dict) or set(data) != {"cities"} or
+        not isinstance(data["cities"], list) or len(data["cities"]) != len(CITY_CODES)):
+        raise InputError("cities.json must contain the supported city catalog")
+    if any(not isinstance(row, dict) or set(row) != {"code", "name", "province"} or
+           not all(isinstance(value, str) and value for value in row.values()) for row in data["cities"]):
+        raise InputError("cities.json has invalid city rows")
+    if {row["code"]: row["name"] for row in data["cities"]} != CITY_CODES:
+        raise InputError("cities.json does not match the supported city catalog")
+    return data["cities"]
 
 
 def _text(value, label):
@@ -90,7 +98,11 @@ def events(path):
             raise InputError(f"duplicate event_id: {event_id}")
         seen.add(event_id)
         if not isinstance(event["city_code"], str) or event["city_code"] not in CITY_CODES:
-            raise InputError(f"{label}.city_code must be 110100 or 310100")
+            raise InputError(f"{label}.city_code is not a supported city")
+        if "area_code" in event:
+            area_code = event["area_code"]
+            if not isinstance(area_code, str) or AREA_TO_CITY.get(area_code) != event["city_code"]:
+                raise InputError(f"{label}.area_code must belong to city_code")
         if event["status"] not in ("confirmed", "cancelled"):
             raise InputError(f"{label}.status must be confirmed or cancelled")
         if type(event["revision"]) is not int or event["revision"] < 0:

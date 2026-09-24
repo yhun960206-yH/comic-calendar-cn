@@ -1,10 +1,13 @@
-// Anchors remain usable without JavaScript; enhancement filters the two city panels.
+// All city anchors work without JavaScript; enhance filtering and panel selection.
 (() => {
   const links = [...document.querySelectorAll('[data-city]')];
   const panels = [...document.querySelectorAll('[data-panel]')];
+  const search = document.querySelector('#city-search');
   if (links.length && panels.length) {
+    const known = new Set(links.map(link => link.dataset.city));
     function selectCity() {
-      const code = location.hash.match(/^#city-(110100|310100)$/)?.[1] || '110100';
+      const requested = location.hash.match(/^#city-(\d{6})$/)?.[1];
+      const code = known.has(requested) ? requested : (known.has('110100') ? '110100' : links[0].dataset.city);
       for (const link of links) {
         if (link.dataset.city === code) link.setAttribute('aria-current', 'true');
         else link.removeAttribute('aria-current');
@@ -13,6 +16,12 @@
     }
     window.addEventListener('hashchange', selectCity);
     selectCity();
+    search?.addEventListener('input', () => {
+      const query = search.value.trim().toLowerCase();
+      for (const link of links) {
+        link.hidden = !!query && !link.dataset.name.toLowerCase().includes(query) && !link.dataset.city.includes(query);
+      }
+    });
   }
   document.querySelectorAll('[data-copy]').forEach(button => {
     button.addEventListener('click', async () => {
@@ -21,7 +30,7 @@
         await navigator.clipboard.writeText(button.dataset.copy);
         result.textContent = '已复制订阅链接';
       } catch {
-        result.textContent = '无法自动复制，请长按或选中左侧链接手动复制';
+        result.textContent = '无法自动复制，请长按或选中链接手动复制';
       }
     });
   });

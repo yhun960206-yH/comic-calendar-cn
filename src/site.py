@@ -29,7 +29,7 @@ def shell(title, content, *, depth=0, demo=False):
     prefix = "../" * depth
     warning = ('<aside class="demo-banner" role="alert">DEMO 演示模式：全部活动均为虚构，'
                '不可据此购票或前往。</aside>' if demo else '')
-    caption = 'DEMO / 虚构活动' if demo else '北京 · 上海 / 人工核实活动'
+    caption = 'DEMO / 虚构活动' if demo else '全国城市 / 来源覆盖有限'
     footer = ('DEMO：仅用于本地界面演示，非真实活动。' if demo else
               '仅展示人工核实并录入的活动；尚未接入自动采集。')
     return f'''<!doctype html>
@@ -62,7 +62,7 @@ def copy_control(url):
 
 def home(city_list, items, demo):
     links = ''.join(f'<a class="city-link" href="#city-{text(city["code"])}" '
-                    f'data-city="{text(city["code"])}">{text(city["name"])}'
+                    f'data-city="{text(city["code"])}" data-name="{text(city["province"] + city["name"])}">{text(city["province"])} · {text(city["name"])}'
                     f'<span class="city-count">{city["event_count"]} 场</span></a>'
                     for city in city_list)
     sections = []
@@ -89,12 +89,14 @@ def home(city_list, items, demo):
     <div class="event-list">{cards}</div>
   </section>''')
     lead = ('以下均为虚构 DEMO 活动，不代表真实漫展或票务信息。' if demo else
-            '选择城市查看已核实活动，复制城市日历链接即可订阅更新。')
+            '选择城市，订阅该市及所辖区县、乡镇已收录的活动。数据来源有限，不能保证完整覆盖。')
     verified = max((event["updated_at"] for event in items), default=None)
     freshness = ('最近人工核对：' + text(verified) + '（UTC）' if verified else
                  '尚无已核实活动；没有可报告的最近核对时间。')
-    content = f'''<section class="hero"><p class="eyebrow">CITY CALENDAR / 北京 &amp; 上海</p>
+    content = f'''<section class="hero"><p class="eyebrow">CITY CALENDAR / 全国城市</p>
     <h1>你的漫展日程，<br><em>按城市</em>订阅。</h1><p class="hero-lead">{lead}</p><p class="hint">{freshness}</p></section>
+    <label for="city-search">搜索城市／省份</label>
+    <input id="city-search" type="search" placeholder="例如：北京、广东深圳" autocomplete="off">
     <nav class="city-nav" aria-label="选择城市">{links}</nav>
     {''.join(sections)}'''
     return shell("北京 / 上海", content, demo=demo)
