@@ -37,6 +37,18 @@ class FECTests(unittest.TestCase):
         with self.assertRaises(fec.SourceError): fec.fetch_all('bad', opener=denied)
         with self.assertRaises(fec.SourceError): fec.fetch_all('test-key', opener=lambda *_ , **__: Response({'data': []}))
 
+    def test_paginated_api_honors_server_page_size(self):
+        seen = []
+        def open_page(req, timeout):
+            from urllib.parse import parse_qs, urlsplit
+            page = int(parse_qs(urlsplit(req.full_url).query)['current'][0])
+            seen.append(page)
+            return Response({'total': 41, 'pageSize': 20,
+                             'data': [row(id=f'{number:08d}-0000-0000-0000-000000000000')
+                                      for number in range((page - 1) * 20, min(page * 20, 41))]})
+        self.assertEqual(len(fec.fetch_all('test-key', opener=open_page)), 41)
+        self.assertEqual(seen, [1, 2, 3])
+
     def test_incomplete_venue_quarantined_not_published(self):
         result, reason = fec.normalize(row(address=''), '2030-01-01T00:00:00Z')
         self.assertIsNone(result)
