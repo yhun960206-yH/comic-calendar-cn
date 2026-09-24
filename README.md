@@ -30,7 +30,7 @@ python3 -m http.server 8000 --directory public
 3. `.github/workflows/pages.yml` 只允许从仓库默认分支部署（手动选择其他分支的运行会跳过构建）；另请在 `github-pages` 环境限制部署分支为默认分支作为纵深防护。支持手动运行及每天 UTC 03:17/15:17 的非整点定时运行；GitHub 定时可能延迟或跳过。工作流先验证真实输入、比对完整 Git 历史中该文件的各个版本、跑测试，随后以 `--input data/events.json`（不传 `--demo`）构建并核验 `demo: false`，同一工作流上传并部署 Pages artifact。部署作业仅需 `pages: write`、`id-token: write`；构建仅读仓库。`github-pages` 环境如设置审批规则，须由管理员批准。Git 历史校验依赖完整历史，请勿改写默认分支历史；初次部署前应确认此前未经工具发布的活动已经进入版本库历史。不要把 `data/seed_events.json` 手动复制到 `public/`。
 4. 已核对全国城市版手动运行成功：站点与抽样订阅链接返回 HTTP 200，`.ics` 为 `text/calendar`；页面当前无真实活动。后续每次上线仍须核对实际工作流与链接，手机端刷新与取消行为尚待实测。
 
-没有可用的自动数据来源时只发布 `data/events.json`（目前空）。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但未提供适用的数据接口许可或密钥。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
+没有可用的自动数据来源时只发布 `data/events.json`（目前空）。新增 `src/sources/fec.py` 是**未启用发布的授权 API 候选导入器**：申请 FEC 工作台 API Key，设置本地环境变量 `FEC_API_KEY`，再运行 `python3 -m src.sources.fec --output /tmp/fec-candidates.json`；输出含 `events` 和 `quarantined`，**不会写入正式数据文件、不会部署**。无明确场地、地区歧义或未确认状态会隔离；来源失联保留既有候选，更新保留 UID 并递增版本。此适配器依据官方示例离线测试，尚未持密钥调用真实 API，不能声称已采集活动。发布数据前还须遵守 FEC 的 CC BY-SA 4.0 署名/相同方式共享要求，并解决持续状态持久化及来源字段质量门槛。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但未提供适用的数据接口许可或密钥。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
 
 ## 真实活动人工录入契约
 
@@ -51,6 +51,7 @@ python3 -m http.server 8000 --directory public
 | `ticket_url` / `map_url` | 可选；经人工核实的 HTTPS 绝对票务/导航 URL；缺失时展示待公布／待核实文字，不放虚构链接 |
 | `source_url` | 经人工核实可信的 HTTPS 公告来源 URL，展示在详情并写入 ICS；不代表获得抓取许可 |
 | `guests` | 可选字符串数组；只有确实公布并核实的嘉宾才录入，无则省略 |
+| `attribution` | 可选数据来源署名（例如授权来源的 CC BY-SA 4.0 信息），详情与 ICS 均展示 |
 
 人工记录时先核实公告来源、时间、会场、票务和导航 URL 与嘉宾，并保留来源与修订证据；本程序仅校验格式，不访问网页或保证事实。所有 URL 必须是 HTTPS ASCII 绝对 URL，非 ASCII 字符须百分号编码。文本不能含控制字符；输入不能有未定义或重复字段/ID。可参考**仅供结构演示、不可发布**的 `data/seed_events.json`。提交前运行上述验证、测试和生产构建，再人工检查 `public/` 内容。本地构建器会对比现有输出 `public/events.json`，阻止曾发布活动删除、换城、版本回退、取消复活及未增版本的更改；Actions 使用 `python3 -m src.history` 对比默认分支 Git 历史中的所有 `data/events.json` 版本。首次建库前的既有发布无法自动追溯，链接真实性仍须人工审核。活动纠错如需换城，应取消旧城市的 ID、在新城市创建新的独立场次 ID。
 

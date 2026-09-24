@@ -107,6 +107,8 @@ def detail(event, city, demo):
     guests = ('<div class="info-row"><dt>嘉宾</dt><dd>'
               + '、'.join(text(guest) for guest in event["guests"]) + '</dd></div>'
               if event.get("guests") else '')
+    attribution = (f'<div class="info-row"><dt>数据来源</dt><dd>{text(event["attribution"])}</dd></div>'
+                   if event.get("attribution") else '')
     links = ''.join(
         f'<a class="external-link" href="{text(event[field])}" target="_blank" rel="noopener noreferrer">{label} ↗</a>'
         for field, label in (("ticket_url", "票务"), ("map_url", "导航"), ("source_url", "公告来源"))
@@ -123,7 +125,7 @@ def detail(event, city, demo):
         <div class="info-row"><dt>日期</dt><dd>{text(date_label(event))} <small>{'北京时间' if 'start_at' in event else '全天；具体开放时间待公布'}</small></dd></div>
         <div class="info-row"><dt>场馆</dt><dd>{text(event["venue_name"])}</dd></div>
         <div class="info-row"><dt>地址</dt><dd>{text(event["venue_address"])}</dd></div>
-        {guests}
+        {guests}{attribution}
         <div class="info-row"><dt>最近核对</dt><dd><time datetime="{text(event["updated_at"])}">{text(event["updated_at"])}</time>（UTC）</dd></div>
       </dl>
       <div class="action-links">{links}</div>

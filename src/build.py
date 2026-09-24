@@ -45,6 +45,8 @@ def calendar(city, city_events, demo):
         details = ["场馆：" + event["venue_name"], "详细地址：" + address]
         if event.get("guests"):
             details.append("嘉宾：" + "、".join(event["guests"]))
+        if event.get("attribution"):
+            details.append("数据来源署名：" + event["attribution"])
         details += ["票务：" + (event.get("ticket_url") or "待公布"),
                     "地图：" + (event.get("map_url") or "待核实"),
                     "公告来源：" + event["source_url"]]
