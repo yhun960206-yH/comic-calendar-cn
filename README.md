@@ -1,5 +1,9 @@
 # 北京 / 上海漫展日历订阅
 
+**已部署站点：** https://yhun960206-yh.github.io/comic-calendar-cn/
+
+**订阅链接：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。首次手动 Pages 部署成功（[Actions 运行记录](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36011722506)）；定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
+
 Python 3 标准库构建的静态首页、活动详情页、每城市完整 ICS 订阅与 JSON。**当前 `data/events.json` 为空，没有已核实的真实活动；尚未接入自动采集。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。定时工作流只重新发布仓库内人工核实的真实文件，不会自动发现或核对新活动。
 
 ## 本地验证和预览
@@ -13,7 +17,7 @@ python3 -m http.server 8000 --directory public
 # 本地访问 http://localhost:8000/；订阅 URL 则仍指向指定的生产 HTTPS 地址
 ```
 
-仓库内现有 `public/` 是以 `example.github.io` 占位 URL 生成的零真实活动本地样本，**不可直接发布**；部署工作流会先按 `BASE_URL` 变量重新生成整个目录。
+本地 `public/` 是以 `example.github.io` 占位 URL 生成的零真实活动样本，且已被 Git 忽略，**不可直接发布**；部署工作流会先按 `BASE_URL` 变量重新生成整个目录。
 
 本地独立演示请输出到单独目录：`python3 -m src.build --base-url https://example.github.io/demo/ --output /tmp/comic-calendar-demo --demo`。演示首页、详情页、JSON 和 ICS 都显著标注 DEMO；**不得用 `--demo` 发布到 Pages**。`--demo` 才默认读取 `data/seed_events.json`，平常只读取 `data/events.json`。`--input` 可指定本地已审核的 JSON（显式覆盖默认或演示文件），但 seed 文件必须搭配 `--demo`；构建器不联网。`python3 -m src.validate --input path/to/events.json` 可单独验证。
 
@@ -21,10 +25,10 @@ python3 -m http.server 8000 --directory public
 
 ## GitHub Pages 配置（需仓库管理员完成）
 
-1. 将源码放入你管理的 GitHub 仓库；在 Settings → Pages → Build and deployment 中设置 **Source: GitHub Actions**。此处没有执行任何推送或部署。
+1. 当前公开仓库为 [comic-calendar-cn](https://github.com/yhun960206-yH/comic-calendar-cn)，Pages 已设为 **Source: GitHub Actions**。若将项目迁移到别的仓库，需重新设置并注意旧订阅地址会失效。
 2. 在 Settings → Secrets and variables → Actions → Variables 中新建 `BASE_URL`，值为**实际**公开 HTTPS Pages 根地址，必须以 `/` 结尾且包含真实仓库子路径（如 `https://YOUR_ACCOUNT.github.io/YOUR_REPO/`）；自定义域名根目录则为 `https://your-domain.example/`。不要使用示例域名上线。构建时验证 URL 格式，无法联网核实该域名是否真的可用。
 3. `.github/workflows/pages.yml` 只允许从仓库默认分支部署（手动选择其他分支的运行会跳过构建）；另请在 `github-pages` 环境限制部署分支为默认分支作为纵深防护。支持手动运行及每天 UTC 03:17/15:17 的非整点定时运行；GitHub 定时可能延迟或跳过。工作流先验证真实输入、比对完整 Git 历史中该文件的各个版本、跑测试，随后以 `--input data/events.json`（不传 `--demo`）构建并核验 `demo: false`，同一工作流上传并部署 Pages artifact。部署作业仅需 `pages: write`、`id-token: write`；构建仅读仓库。`github-pages` 环境如设置审批规则，须由管理员批准。Git 历史校验依赖完整历史，请勿改写默认分支历史；初次部署前应确认此前未经工具发布的活动已经进入版本库历史。不要把 `data/seed_events.json` 手动复制到 `public/`。
-4. 部署前检查工作流结果与公开页面、两个订阅链接是否在指定根路径正常访问。README 不代表部署已成功。
+4. 已核对首次手动运行成功：站点与北京、上海订阅链接返回 HTTP 200，`.ics` 为 `text/calendar`；页面当前无真实活动。后续每次上线仍须核对实际工作流与链接，手机端刷新与取消行为尚待实测。
 
 没有已授权来源或新活动时只发布已人工核实的 `data/events.json`（目前空）。此流程不抓取网页；新增任何自动采集前应单独核实数据源许可、审核流程及真实性。
 
