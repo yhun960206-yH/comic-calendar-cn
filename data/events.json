@@ -1,3 +1,18 @@
 {
-  "events": []
+  "events": [
+    {
+      "event_id": "ai-cicf-agf-guangzhou-2026",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "440100",
+      "title": "2026 CICF×AGF 广州动漫游戏盛典",
+      "start_date": "2026-10-02",
+      "end_date": "2026-10-06",
+      "updated_at": "2026-09-25T02:21:12Z",
+      "venue_name": "广州保利世贸博览馆",
+      "venue_address": "广东省广州市海珠区新港东路1000号",
+      "source_url": "https://www.cicfexpo.com/index.php?m=content&c=index&a=show&catid=32&id=1224",
+      "attribution": "日期及场馆：CICF×AGF 主办方官网；场馆地址：广州市海珠区政府公示。仅整理事实，具体安排以主办方最新公告为准。"
+    }
+  ]
 }
