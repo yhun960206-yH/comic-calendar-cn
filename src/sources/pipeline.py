@@ -1,4 +1,4 @@
-"""Opt-in FEC publication preparation using the last live Pages data as a checkpoint.
+"""FEC publication preparation using the last live Pages data as a checkpoint.
 
 This module does not publish or commit. If source or checkpoint access fails, the
 caller must abort its Pages deployment; the already live artifact stays intact.
@@ -13,7 +13,8 @@ from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 from ..model import InputError, check_transition, events, https_url
-from .fec import SourceError, fetch_all, reconcile
+from .fec import SourceError, fetch_all, merge_prepared, reconcile
+from .fec_web import WebSourceError, fetch_candidates
 
 MAX_CHECKPOINT_BYTES = 5_000_000
 
@@ -44,12 +45,7 @@ def load_published(base_url, *, opener=urlopen, run_id=""):
     return payload["events"]
 
 
-def prepare(base_url, key, local_path, output, *, opener=urlopen, source_fetch=fetch_all, run_id=""):
-    if not key:
-        raise SourceError("FEC_API_KEY is required")
-    target = Path(output)
-    if target.resolve() == Path(local_path).resolve():
-        raise SourceError("candidate output must not overwrite the repository input")
+def _previous(base_url, local_path, *, opener, run_id):
     published = load_published(base_url, opener=opener, run_id=run_id)
     local = events(local_path)
     # Validate the remote event schema and protect local, history-backed edits.
@@ -68,7 +64,26 @@ def prepare(base_url, key, local_path, output, *, opener=urlopen, source_fetch=f
             by_id[event["event_id"]] = event
         elif old != event and event["revision"] == old["revision"]:
             raise SourceError(f"local and published revisions disagree for {event['event_id']}")
-    previous = sorted(by_id.values(), key=lambda e: (e["start_date"], e["event_id"]))
+    return sorted(by_id.values(), key=lambda e: (e["start_date"], e["event_id"]))
+
+
+def _write_candidate(local_path, output, merged):
+    target = Path(output)
+    if target.resolve() == Path(local_path).resolve():
+        raise SourceError("candidate output must not overwrite the repository input")
+    from tempfile import TemporaryDirectory
+    with TemporaryDirectory() as directory:
+        candidate = Path(directory) / "events.json"
+        candidate.write_text(json.dumps({"events": merged}, ensure_ascii=False), encoding="utf-8")
+        events(candidate)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(candidate.read_bytes())
+
+
+def prepare(base_url, key, local_path, output, *, opener=urlopen, source_fetch=fetch_all, run_id=""):
+    if not key:
+        raise SourceError("FEC_API_KEY is required")
+    previous = _previous(base_url, local_path, opener=opener, run_id=run_id)
     rows = source_fetch(key)
     if not isinstance(rows, list):
         raise SourceError("source fetch must return a complete list")
@@ -81,16 +96,21 @@ def prepare(base_url, key, local_path, output, *, opener=urlopen, source_fetch=f
     merged, quarantine = reconcile(previous, rows, observed_at)
     if rows and not any(event["event_id"].startswith("fec-") for event in merged):
         raise SourceError("source returned rows but none passed quality gates; retain previous site")
-    # Validate before touching any output path. The build step later publishes
-    # the fully built site as one artifact; this candidate file is not live.
-    with TemporaryDirectory() as directory:
-        candidate = Path(directory) / "events.json"
-        candidate.write_text(json.dumps({"events": merged}, ensure_ascii=False), encoding="utf-8")
-        events(candidate)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(candidate.read_bytes())
+    _write_candidate(local_path, output, merged)
     return {"source_rows": len(rows), "eligible_events": len(merged), "quarantined": quarantine,
             "observed_at": observed_at}
+
+
+def prepare_web(base_url, local_path, output, *, opener=urlopen, web_fetch=fetch_candidates, run_id=""):
+    """Refresh from public, licensed HTML without tokens or hidden APIs."""
+    previous = _previous(base_url, local_path, opener=opener, run_id=run_id)
+    ready, skipped, observed_at = web_fetch()
+    merged, conflicts = merge_prepared(previous, ready, observed_at)
+    if not ready:
+        raise SourceError("no complete public FEC expo records; retain previous site")
+    _write_candidate(local_path, output, merged)
+    return {"source_rows": len(ready) + len(skipped), "eligible_events": len(merged),
+            "quarantined": skipped + conflicts, "observed_at": observed_at}
 
 
 def main(argv=None):
@@ -99,9 +119,16 @@ def main(argv=None):
     parser.add_argument("--input", default="data/events.json")
     parser.add_argument("--output", help="candidate input path (required when key is present)")
     parser.add_argument("--check-no-key", action="store_true", help="refuse to erase live API events")
+    parser.add_argument("--public-web", action="store_true", help="use public licensed FEC exhibition pages")
     args = parser.parse_args(argv)
     try:
-        if args.check_no_key:
+        if args.public_web:
+            if not args.output:
+                raise SourceError("--output is required")
+            report = prepare_web(args.base_url, args.input, args.output,
+                                 run_id=os.environ.get("GITHUB_RUN_ID", ""))
+            print(json.dumps(report, ensure_ascii=False))
+        elif args.check_no_key:
             live = load_published(args.base_url, run_id=os.environ.get("GITHUB_RUN_ID", ""))
             if any(isinstance(e, dict) and str(e.get("event_id", "")).startswith("fec-") for e in live):
                 raise SourceError("published FEC events exist, but API key is absent; retain live site")
@@ -112,7 +139,7 @@ def main(argv=None):
             report = prepare(args.base_url, os.environ.get("FEC_API_KEY", ""), args.input, args.output,
                              run_id=os.environ.get("GITHUB_RUN_ID", ""))
             print(json.dumps(report, ensure_ascii=False))
-    except (InputError, SourceError, OSError) as exc:
+    except (InputError, SourceError, WebSourceError, OSError) as exc:
         print(f"FEC preparation failed; deployment must stop: {exc}", file=sys.stderr)
         return 1
     return 0
