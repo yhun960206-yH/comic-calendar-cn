@@ -39,9 +39,10 @@ jobs:
             python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json --output "$RUNNER_TEMP/fec-events.json"
             INPUT="$RUNNER_TEMP/fec-events.json"
           else
-            # Never erase events that an earlier authorized run published.
-            python3 -m src.sources.pipeline --base-url "$BASE_URL" --check-no-key
-            echo 'FEC_API_KEY absent: publishing the existing reviewed input only, no automatic event discovery.'
+            # FEC explicitly licenses its public data CC BY-SA 4.0. Crawl
+            # its public structured pages conservatively; fail closed.
+            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json --output "$RUNNER_TEMP/fec-events.json" --public-web
+            INPUT="$RUNNER_TEMP/fec-events.json"
           fi
           python3 -m src.build --base-url "$BASE_URL" --input "$INPUT" --output public
           python3 - <<'PY'

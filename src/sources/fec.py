@@ -117,19 +117,20 @@ def normalize(row, observed_at):
             "attribution": "FEC·兽展日历 (CC BY-SA 4.0): https://creativecommons.org/licenses/by-sa/4.0/"}, None
 
 
-def reconcile(previous, candidates, observed_at):
-    """Retain missing entries; update revisions only when source fields change."""
+def merge_prepared(previous, candidates, observed_at):
+    """Merge normalized candidates without deleting missing published events."""
     by_id = {event["event_id"]: dict(event) for event in previous}
+    source_ids = {event["source_url"]: event["event_id"] for event in previous}
     quarantined = []
-    for row in candidates:
-        candidate, reason = normalize(row, observed_at)
-        if reason:
-            quarantined.append({"source_id": row.get("id") if isinstance(row, dict) else None, "reason": reason})
-            continue
+    for candidate in candidates:
+        candidate = dict(candidate)
+        # The authorized API and the public HTML may use different IDs for
+        # the same official page. The already published UID remains canonical.
+        candidate["event_id"] = source_ids.get(candidate["source_url"], candidate["event_id"])
         old = by_id.get(candidate["event_id"])
         if old:
             if old["city_code"] != candidate["city_code"] or old["status"] == "cancelled" and candidate["status"] != "cancelled":
-                quarantined.append({"source_id": row["id"], "reason": "city migration or cancellation reversal"})
+                quarantined.append({"source_url": candidate["source_url"], "reason": "city migration or cancellation reversal"})
                 continue
             relevant = set(candidate) - {"revision", "updated_at"}
             if all(old.get(key) == candidate[key] for key in relevant):
@@ -138,9 +139,23 @@ def reconcile(previous, candidates, observed_at):
             if observed_at <= old["updated_at"]:
                 raise SourceError("observed_at must increase for changed events")
         by_id[candidate["event_id"]] = candidate
+        source_ids[candidate["source_url"]] = candidate["event_id"]
     merged = sorted(by_id.values(), key=lambda e: (e["start_date"], e["event_id"]))
     check_transition(previous, merged)
     return merged, quarantined
+
+
+def reconcile(previous, candidates, observed_at):
+    """Normalize API rows, quarantine invalid ones, then merge safely."""
+    ready, quarantined = [], []
+    for row in candidates:
+        candidate, reason = normalize(row, observed_at)
+        if reason:
+            quarantined.append({"source_id": row.get("id") if isinstance(row, dict) else None, "reason": reason})
+        else:
+            ready.append(candidate)
+    merged, conflicts = merge_prepared(previous, ready, observed_at)
+    return merged, quarantined + conflicts
 
 
 def main(argv=None):

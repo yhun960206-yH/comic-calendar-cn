@@ -4,7 +4,7 @@
 
 **订阅链接示例：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。全国城市版手动 Pages 部署成功（[Actions 运行记录](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36015985901)），抽查北京、上海、深圳、东莞、五指山的 `.ics` 均返回 HTTP 200 和 `text/calendar`；定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
 
-Python 3 标准库构建的静态首页、活动详情页、372 个城市级聚合订阅源与 JSON。城市订阅包含所属区县、乡镇与街道的活动，前提是活动来源提供可核对的具体地点。行政区划快照不等于活动来源，不保证全国活动全量覆盖。**当前 `data/events.json` 为空，没有已核实的真实活动；尚未接入自动采集。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。未配置 `FEC_API_KEY` 时定时工作流只重新发布仓库中已有的输入，不会自动发现活动；配置后才尝试 FEC 子类的官方开放接口，仍不能保证覆盖全部漫展。
+Python 3 标准库构建的静态首页、活动详情页、372 个城市级聚合订阅源与 JSON。城市订阅包含所属区县、乡镇与街道的活动，前提是活动来源提供可核对的具体地点。行政区划快照不等于活动来源，不保证全国活动全量覆盖。**`data/events.json` 为空；活动可从 FEC 兽展日历公开页面自动采集，但该来源只覆盖兽展子类，不代表全国漫展。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。未配置 `FEC_API_KEY` 时工作流读取 FEC 官网公开的结构化活动页；配置后尝试 FEC 官方开放 API。
 
 ## 本地验证和预览
 
@@ -30,7 +30,9 @@ python3 -m http.server 8000 --directory public
 3. `.github/workflows/pages.yml` 只允许从仓库默认分支部署（手动选择其他分支的运行会跳过构建）；另请在 `github-pages` 环境限制部署分支为默认分支作为纵深防护。支持手动运行及每天 UTC 03:17/15:17 的非整点定时运行；GitHub 定时可能延迟或跳过。工作流先验证真实输入、比对完整 Git 历史中该文件的各个版本、跑测试，随后以 `--input data/events.json`（不传 `--demo`）构建并核验 `demo: false`，同一工作流上传并部署 Pages artifact。部署作业仅需 `pages: write`、`id-token: write`；构建仅读仓库。`github-pages` 环境如设置审批规则，须由管理员批准。Git 历史校验依赖完整历史，请勿改写默认分支历史；初次部署前应确认此前未经工具发布的活动已经进入版本库历史。不要把 `data/seed_events.json` 手动复制到 `public/`。
 4. 已核对全国城市版手动运行成功：站点与抽样订阅链接返回 HTTP 200，`.ics` 为 `text/calendar`；页面当前无真实活动。后续每次上线仍须核对实际工作流与链接，手机端刷新与取消行为尚待实测。
 
-没有可用的自动数据来源时只发布 `data/events.json`（目前空）。`src/sources/fec.py` 是**按需启用的授权 API 适配器**：先在 FEC 工作台取得 API Key。`python3 -m src.sources.fec --output /tmp/fec-candidates.json` 是本地只读候选试运行；来源地址字段空白/过短、地区歧义或未确认状态的记录会隔离；适配器无法仅凭地址文字证明场馆名和地图定位正确。将密钥设置为仓库的 Actions Secret `FEC_API_KEY` 后，同一发布工作流才会调用 `src.sources.pipeline`：先从上次已发布 Pages 数据读取检查点，拉取完整 API 列表、保留失联记录并递增变化版本、校验，再构建和部署。源失败、检查点失联、记录突然清空或密钥被移除时**不部署，保留旧站**。检查点由 Pages 静态 JSON 提供，非事务数据库；刚部署就重复运行的缓存行为仍需线上验证。此流程尚未持真实密钥调用过 API，不能声称已采集活动；若来源仅有地区、没有可用地址，则不会发布；地址真实性、场馆名称和地图定位仍有来源质量风险。FEC 数据须保留 CC BY-SA 4.0 署名及相同方式共享条件。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但目前未提供适用的数据接口许可或 FEC 密钥。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
+无需密钥时，工作流读取 [FEC·兽展日历](https://www.furrycons.cn/) 公开首页标为「综合性展会」的链接与活动页内的 schema.org Event JSON-LD；仅采集名称、全天日期、城市、场馆、来源 URL，不抓图片、描述，也不推断购票/导航与开放时间。官网公开数据按 [CC BY-SA 4.0](https://www.furrycons.cn/about) 许可使用，活动本身继续署名且链接原页；源站 robots.txt 未禁止此路径。请求限于首页及最多 40 个公开活动页，每页之间留间隔。来源页面格式、网络访问或质量门槛出错时停止部署并保留上一版。首页并非全部兽展、也不等于全部漫展；活动从首页消失不代表取消，旧活动仍保留且可能过期。2026-09-25 本地试运行找到 21 个候选链接，15 条通过字段检查、6 条隔离；上线后以实际 Pages 内容为准。
+
+`data/events.json` 仍可存放已明确核实的人工记录（目前空），但自动路径不依赖人工录入。`src/sources/fec.py` 是**按需启用的授权 API 适配器**：先在 FEC 工作台取得 API Key。`python3 -m src.sources.fec --output /tmp/fec-candidates.json` 是本地只读候选试运行；来源地址字段空白/过短、地区歧义或未确认状态的记录会隔离；适配器无法仅凭地址文字证明场馆名和地图定位正确。将密钥设置为仓库的 Actions Secret `FEC_API_KEY` 后，同一发布工作流才会调用 `src.sources.pipeline`：先从上次已发布 Pages 数据读取检查点，拉取完整 API 列表、保留失联记录并递增变化版本、校验，再构建和部署。源失败、检查点失联、记录突然清空或密钥被移除时**不部署，保留旧站**。检查点由 Pages 静态 JSON 提供，非事务数据库；刚部署就重复运行的缓存行为仍需线上验证。此流程尚未持真实密钥调用过 API，不能声称已采集活动；若来源仅有地区、没有可用地址，则不会发布；地址真实性、场馆名称和地图定位仍有来源质量风险。FEC 数据须保留 CC BY-SA 4.0 署名及相同方式共享条件。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但没有这些平台适用的采集许可，FEC API 密钥也未配置。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
 
 ## 真实活动人工录入契约
 
