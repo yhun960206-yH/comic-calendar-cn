@@ -7,7 +7,8 @@
     const known = new Set(links.map(link => link.dataset.city));
     function selectCity() {
       const requested = location.hash.match(/^#city-(\d{6})$/)?.[1];
-      const code = known.has(requested) ? requested : (known.has('110100') ? '110100' : links[0].dataset.city);
+      const firstPopulated = links.find(link => Number(link.dataset.count) > 0)?.dataset.city;
+      const code = known.has(requested) ? requested : (firstPopulated || (known.has('110100') ? '110100' : links[0].dataset.city));
       for (const link of links) {
         if (link.dataset.city === code) link.setAttribute('aria-current', 'true');
         else link.removeAttribute('aria-current');

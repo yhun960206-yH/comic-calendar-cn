@@ -61,12 +61,17 @@ def copy_control(url):
 
 
 def home(city_list, items, demo):
+    # A 372-city feed catalog does not mean 372 cities have events. Put the
+    # populated cities first without changing their stable feed URLs.
+    displayed_cities = sorted(city_list, key=lambda city: -city["event_count"])
+    populated = sum(city["event_count"] > 0 for city in city_list)
     links = ''.join(f'<a class="city-link" href="#city-{text(city["code"])}" '
-                    f'data-city="{text(city["code"])}" data-name="{text(city["province"] + city["name"])}">{text(city["province"])} · {text(city["name"])}'
+                    f'data-city="{text(city["code"])}" data-count="{city["event_count"]}" '
+                    f'data-name="{text(city["province"] + city["name"])}">{text(city["province"])} · {text(city["name"])}'
                     f'<span class="city-count">{city["event_count"]} 场</span></a>'
-                    for city in city_list)
+                    for city in displayed_cities)
     sections = []
-    for city in city_list:
+    for city in displayed_cities:
         code = city["code"]
         rows = [event for event in items if event["city_code"] == code]
         if rows:
@@ -78,8 +83,8 @@ def home(city_list, items, demo):
                 + ('<span class="cancelled">已取消</span>' if event["status"] == "cancelled" else '')
                 + '</article>' for event in rows)
         else:
-            cards = ('<p class="empty">暂无已收录活动；不代表城市没有漫展。'
-                     '自动来源需要有效接口权限，覆盖范围以已接入来源为准。</p>')
+            cards = ('<p class="empty">该城市暂无已收录活动；不代表这里没有漫展。'
+                     '目前自动来源只覆盖部分兽展，无法保证普通漫展或其他活动被收录。</p>')
         sections.append(f'''<section class="city-panel" id="city-{text(code)}" data-panel="{text(code)}">
     <div class="section-heading"><div><p class="eyebrow">CITY / {text(code)}</p><h2>{text(city["name"])}漫展</h2></div>
     <span class="count">{city["event_count"]} 场已录入</span></div>
@@ -94,7 +99,9 @@ def home(city_list, items, demo):
     freshness = ('最近来源观察／人工核对：' + text(verified) + '（UTC）' if verified else
                  '尚无已收录活动；没有可报告的最近观察时间。')
     content = f'''<section class="hero"><p class="eyebrow">CITY CALENDAR / 全国城市</p>
-    <h1>你的漫展日程，<br><em>按城市</em>订阅。</h1><p class="hero-lead">{lead}</p><p class="hint">{freshness}</p></section>
+    <h1>你的漫展日程，<br><em>按城市</em>订阅。</h1><p class="hero-lead">{lead}</p>
+    <p class="coverage">目前收录 {len(items)} 场活动，分布在 {populated} / {len(city_list)} 个城市。多数城市为 0，不代表没有漫展。</p>
+    <p class="hint">{freshness}</p></section>
     <label for="city-search">搜索城市／省份</label>
     <input id="city-search" type="search" placeholder="例如：北京、广东深圳" autocomplete="off">
     <nav class="city-nav" aria-label="选择城市">{links}</nav>
