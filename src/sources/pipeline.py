@@ -13,10 +13,14 @@ from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 from ..model import InputError, check_transition, events, https_url
+from .bili_channel import (BiliSourceError, count_published, prune_expired,
+                           fetch_candidates as bili_candidates)
 from .fec import SourceError, fetch_all, merge_prepared, reconcile
 from .fec_web import WebSourceError, fetch_candidates
 
 MAX_CHECKPOINT_BYTES = 5_000_000
+# 源异常缩水保护：上次有记录时，本次不得低于其一半。
+MIN_KEEP_RATIO = 2
 
 
 def load_published(base_url, *, opener=urlopen, run_id=""):
@@ -113,6 +117,53 @@ def prepare_web(base_url, local_path, output, *, opener=urlopen, web_fetch=fetch
             "quarantined": skipped + conflicts, "observed_at": observed_at}
 
 
+def prepare_multi(base_url, key, local_path, output, *, use_web, use_bili, opener=urlopen,
+                  source_fetch=fetch_all, web_fetch=fetch_candidates,
+                  bili_fetch=bili_candidates, run_id=""):
+    """从同一检查点依次合并多个来源，只写一次候选文件。
+
+    任一来源失败就整轮不输出，已发布的旧站保持不动。
+    """
+    previous = _previous(base_url, local_path, opener=opener, run_id=run_id)
+    previous, pruned = prune_expired(previous)
+    observed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    merged = previous
+    report = {"pruned_expired": pruned, "observed_at": observed_at}
+
+    if key:
+        rows = source_fetch(key)
+        if not isinstance(rows, list):
+            raise SourceError("source fetch must return a complete list")
+        prior = sum(e["event_id"].startswith("fec-") for e in merged)
+        if prior and not rows:
+            raise SourceError("source suddenly returned no events; retain previous site")
+        if prior > 10 and len(rows) < prior // MIN_KEEP_RATIO:
+            raise SourceError("source result count dropped sharply; retain previous site")
+        merged, quarantine = reconcile(merged, rows, observed_at)
+        if rows and not any(e["event_id"].startswith("fec-") for e in merged):
+            raise SourceError("source returned rows but none passed quality gates; retain previous site")
+        report["fec_api"] = {"source_rows": len(rows), "quarantined": quarantine}
+    elif use_web:
+        ready, skipped, web_observed = web_fetch()
+        if not ready:
+            raise SourceError("no complete public FEC expo records; retain previous site")
+        merged, conflicts = merge_prepared(merged, ready, web_observed)
+        report["fec_web"] = {"rows": len(ready) + len(skipped), "quarantined": skipped + conflicts}
+
+    if use_bili:
+        prior_bili = count_published(merged)
+        ready, skipped, bili_observed = bili_fetch(previous=merged)
+        if prior_bili > 20 and len(ready) < prior_bili // MIN_KEEP_RATIO:
+            raise SourceError("bilibili result count dropped sharply; retain previous site")
+        merged, conflicts = merge_prepared(merged, ready, bili_observed)
+        report["bilibili"] = {"eligible": len(ready), "quarantined": skipped + conflicts,
+                              "previous": prior_bili}
+
+    _write_candidate(local_path, output, merged)
+    report["eligible_events"] = len(merged)
+    return report
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Prepare FEC events from a live Pages checkpoint")
     parser.add_argument("--base-url", required=True)
@@ -120,13 +171,15 @@ def main(argv=None):
     parser.add_argument("--output", help="candidate input path (required when key is present)")
     parser.add_argument("--check-no-key", action="store_true", help="refuse to erase live API events")
     parser.add_argument("--public-web", action="store_true", help="use public licensed FEC exhibition pages")
+    parser.add_argument("--bili", action="store_true", help="also merge the bilibili membership-shop convention channel")
     args = parser.parse_args(argv)
     try:
-        if args.public_web:
+        if args.public_web or args.bili:
             if not args.output:
                 raise SourceError("--output is required")
-            report = prepare_web(args.base_url, args.input, args.output,
-                                 run_id=os.environ.get("GITHUB_RUN_ID", ""))
+            report = prepare_multi(args.base_url, os.environ.get("FEC_API_KEY", ""),
+                                   args.input, args.output, use_web=args.public_web,
+                                   use_bili=args.bili, run_id=os.environ.get("GITHUB_RUN_ID", ""))
             print(json.dumps(report, ensure_ascii=False))
         elif args.check_no_key:
             live = load_published(args.base_url, run_id=os.environ.get("GITHUB_RUN_ID", ""))
@@ -139,7 +192,7 @@ def main(argv=None):
             report = prepare(args.base_url, os.environ.get("FEC_API_KEY", ""), args.input, args.output,
                              run_id=os.environ.get("GITHUB_RUN_ID", ""))
             print(json.dumps(report, ensure_ascii=False))
-    except (InputError, SourceError, WebSourceError, OSError) as exc:
+    except (InputError, SourceError, BiliSourceError, WebSourceError, OSError) as exc:
         print(f"FEC preparation failed; deployment must stop: {exc}", file=sys.stderr)
         return 1
     return 0

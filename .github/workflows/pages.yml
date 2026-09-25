@@ -33,16 +33,17 @@ jobs:
           FEC_API_KEY: ${{ secrets.FEC_API_KEY }}
         run: |
           test -n "$BASE_URL" || { echo 'Set repository variable BASE_URL to the real HTTPS Pages URL ending in /'; exit 1; }
-          INPUT=data/events.json
+          INPUT="$RUNNER_TEMP/events.json"
           if [ -n "$FEC_API_KEY" ]; then
-            # API or previous checkpoint failure stops the job BEFORE artifact upload.
-            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json --output "$RUNNER_TEMP/fec-events.json"
-            INPUT="$RUNNER_TEMP/fec-events.json"
+            # FEC authorized API. Any source or checkpoint failure stops the job
+            # BEFORE artifact upload, so the live site is never replaced.
+            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json \
+              --output "$INPUT" --bili
           else
-            # FEC explicitly licenses its public data CC BY-SA 4.0. Crawl
-            # its public structured pages conservatively; fail closed.
-            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json --output "$RUNNER_TEMP/fec-events.json" --public-web
-            INPUT="$RUNNER_TEMP/fec-events.json"
+            # FEC explicitly licenses its public data CC BY-SA 4.0. Crawl its
+            # public structured pages conservatively; fail closed.
+            python3 -m src.sources.pipeline --base-url "$BASE_URL" --input data/events.json \
+              --output "$INPUT" --public-web --bili
           fi
           python3 -m src.build --base-url "$BASE_URL" --input "$INPUT" --output public
           python3 - <<'PY'
