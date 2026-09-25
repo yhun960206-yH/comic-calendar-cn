@@ -1,0 +1,80 @@
+{
+  "collected_at": "2026-09-25T02:48:25Z",
+  "method": "One-time AI-assisted multi-city search: directly checked public organizer website, public local news, and Sina's robots-allowed mirror of posts attributed to verified organizer accounts; original Weibo pages were not fetched. No private platform endpoint, ticket database, article prose, images, or ticket prices imported.",
+  "accepted": [
+    {
+      "event_id": "ai-ijoy-beijing-30-2026",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5336886547057556.html",
+      "venue_address_crosscheck": "https://english.beijing.gov.cn/investinginbeijing/InvestmentSpecial/exhibition/Key_venues/202510/t20251024_4237907.html",
+      "facts": "Verified IJOY organizer account in Sina mirror names 2026-10-01 through 10-03, 国家会议中心一层 E1—E4; city government gives 一期地址天辰东路7号.",
+      "rights": "Individual event facts and URLs only; original social platform not visited. Sina mirror robots.txt permits public pages; no Sina/organizer prose or images copied."
+    },
+    {
+      "event_id": "ai-ido-beijing-55-2026",
+      "organizer_announcement_mirror": "https://sina.cn/news/detail/5332947428443178.html",
+      "venue_address_crosscheck": "https://english.beijing.gov.cn/investinginbeijing/InvestmentSpecial/exhibition/Key_venues/202510/t20251024_4237790.html",
+      "facts": "Verified IDO organizer account in Sina mirror names 2026-10-01 through 10-02, 北京展览馆; city government lists 西直门外大街135号.",
+      "rights": "Individual event facts and URLs only; original social platform not visited; no prose or images copied."
+    },
+    {
+      "event_id": "ai-cgf-wuhan-17-2026",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5329320306544168.html",
+      "venue_address_crosscheck": "https://sw.wuhan.gov.cn/xwdt/gzdt/202606/t20260612_2776629.shtml",
+      "facts": "Verified 武汉CGF organizer account in Sina mirror explicitly lists 2026-10-01 through 10-03 and 中国光谷科技会展中心. Wuhan commerce bureau's different event at same venue lists 高新大道787号; an older district planning page uses 777号, so use the more recent operational address and venue name for navigation.",
+      "rights": "Individual event facts and URLs only; original social platform not visited; no prose or images copied."
+    },
+    {
+      "event_id": "ai-worldline-chengdu-25-2026",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5329975046571945.html",
+      "venue_address_crosscheck": "https://www.cnexpo.com/venue/143",
+      "facts": "Verified 世界线动漫展 organizer account in Sina mirror explicitly lists 2026-10-01 through 10-04 and 中国西部国际博览城; independent venue listing gives 福州路东段88号.",
+      "rights": "Individual event facts and URLs only; original social platform not visited; no prose or images copied."
+    },
+    {
+      "event_id": "ai-xinjiang-anime-festival-4-2026",
+      "public_local_news": "https://www.xinjiangnet.com.cn/yclm/202609/t20260920_36455569.html",
+      "venue_address_crosscheck": "https://www.uetd.gov.cn/jjjskfq/c119523/202505/135f3fb0eedb4b7eb189494649073589.shtml",
+      "facts": "Urumqi local news, explicitly citing organizers, lists 2026-09-24 through 09-27 at 砂之船（乌鲁木齐）奥莱; economic development district's venue profile gives 沙坪东街866号. This is an in-progress event as of 2026-09-25 and is not a future series prediction.",
+      "rights": "Individual event facts and URLs only; no news text or images copied."
+    },
+    {
+      "event_id": "ai-ipm-beijing-2026",
+      "organizer_announcement_mirror": "https://www.sina.cn/weibo/detail/5346022467044428.html",
+      "venue_address_crosscheck": "https://english.beijing.gov.cn/investinginbeijing/InvestmentSpecial/exhibition/Key_venues/202510/t20251024_4237786.html",
+      "facts": "Verified IJOY organizer account in Sina mirror explicitly says IPM Beijing is set for 2026-12-05 at 国家会议中心二期4号馆; Beijing government gives Phase II address 北辰西路6号院, distinct from Phase I.",
+      "rights": "Individual event facts and URLs only; original social platform not visited; no prose or images copied."
+    },
+    {
+      "event_id": "ai-hong-kong-comic-con-2027",
+      "organizer_announcement": "https://www.hkcomiccon.com/",
+      "venue_address_crosscheck": "https://ani-com.hk/",
+      "facts": "Hong Kong Comic Con official homepage explicitly gives 2027-05-28 through 05-30, Hong Kong Convention and Exhibition Centre Hall 1; separate event organizer at same venue lists 香港岛湾仔博览道1号. This is not the unrelated 2026 Hong Kong event.",
+      "rights": "Individual event facts and URLs only; official site robots.txt does not disallow public homepage. No prose or images copied."
+    }
+  ],
+  "excluded_examples": [
+    {
+      "candidate": "广州白云国际动漫游戏嘉年华（2026 国庆）",
+      "reason": "Sources disagree on 10-05/06 versus 10-06/07; no later directly verified organizer notice to resolve date."
+    },
+    {
+      "candidate": "西安第27届梦乡动漫展（2026-10-01—04）",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5324265173027991.html",
+      "venue_address_source": "https://cbip.xa.gov.cn/web_files/itl/file/2025/12/15/202512151019424757730.pdf",
+      "reason": "Venue 西安临空会展中心 is branded 西安 but physically in 西咸新区空港新城、咸阳市渭城区 (广仁西路15号); current subscription administrative-city mapping needs an explicit city-policy decision before publishing to 西安 or 咸阳."
+    },
+    {
+      "candidate": "Rainbow Gala 34（香港，2026-12-25—26）",
+      "organizer_announcement": "https://www.rainbow-gala.com/",
+      "reason": "Official site says 預定於聖誕期間; hold tentative dates until a final confirmation under current confirmed-only policy."
+    },
+    {
+      "candidate": "RED LAND 2026 上海",
+      "reason": "Published schedule names the broad 复兴岛 area only; a definite venue entry/address has not been confirmed."
+    },
+    {
+      "candidate": "全国各地仅出现在票务聚合摘要的国庆漫展",
+      "reason": "Search snippets and scraped listings alone do not verify organizer, final dates, accurate venue and publishing conditions."
+    }
+  ]
+}
