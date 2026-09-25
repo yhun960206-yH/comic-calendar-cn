@@ -44,12 +44,12 @@ def shell(title, content, *, depth=0, demo=False):
 </head>
 <body>
   <header class="site-header"><div class="wrap header-inner">
-    <a class="brand" href="{prefix}index.html">漫展日历 <span>订阅</span></a>
-    <span class="header-caption">{caption}</span>
+    <a class="brand" href="{prefix}index.html">漫展日历<span aria-hidden="true"> ↗</span></a>
+    <nav class="header-nav" aria-label="站内导航"><a href="{prefix}index.html#city-picker">选择城市</a><a href="{prefix}index.html#how-to-subscribe">如何订阅</a></nav>
   </div></header>
   {warning}
   <main class="wrap">{content}</main>
-  <footer class="wrap footer">{footer}日期与时间以活动公告为准；未公布开放时间时使用全天事件。</footer>
+  <footer class="wrap footer"><span>{caption}</span><p>{footer}日期与时间以活动公告为准；未公布开放时间时使用全天事件。</p></footer>
 </body></html>
 '''
 
@@ -77,36 +77,53 @@ def home(city_list, items, demo):
         if rows:
             cards = ''.join(
                 '<article class="event-card">'
-                f'<div class="eyebrow">{text(date_label(event))}</div>'
+                f'<p class="event-date">{text(date_label(event))}</p>'
                 f'<h3><a href="events/{text(event["event_id"])}.html">{text(event["title"])}</a></h3>'
                 f'<p>{text(event["venue_name"])} · {text(event["venue_address"])}</p>'
                 + ('<span class="cancelled">已取消</span>' if event["status"] == "cancelled" else '')
                 + '</article>' for event in rows)
         else:
             cards = ('<p class="empty">该城市暂无已收录活动；不代表这里没有漫展。'
-                     '目前自动来源只覆盖部分兽展，无法保证普通漫展或其他活动被收录。</p>')
+                     '收录来源有限，不能保证普通漫展或其他活动被完整收录。你仍可提前订阅。</p>')
         sections.append(f'''<section class="city-panel" id="city-{text(code)}" data-panel="{text(code)}">
-    <div class="section-heading"><div><p class="eyebrow">CITY / {text(code)}</p><h2>{text(city["name"])}漫展</h2></div>
-    <span class="count">{city["event_count"]} 场已录入</span></div>
-    <div class="feed-box"><p class="feed-label">日历订阅 · HTTPS 地址</p>
-      <p class="hint">复制地址，添加到日历应用的“通过 URL 订阅”中。</p>
-      {copy_control(city["feed_url"])}</div>
+    <div class="section-heading"><div><p class="eyebrow">02 / GET YOUR LINK</p><h2>{text(city["name"])}日历</h2></div>
+    <span class="count">目前已录入 {city["event_count"]} 场</span></div>
+    <div class="feed-box"><p class="feed-label">订阅{text(city["name"])}及所辖区县已收录的活动</p>
+      <p class="hint">复制这条 HTTPS 地址；接下来在日历应用中选择“通过 URL 订阅”。</p>
+      {copy_control(city["feed_url"])}
+      <p class="feed-after">复制后还需要在日历应用中添加地址；仅点击链接或下载文件不等于已订阅。</p></div>
+    <div class="event-heading"><h3>已收录活动</h3><p>日期和地点以主办方最新公告为准。</p></div>
     <div class="event-list">{cards}</div>
   </section>''')
     lead = ('以下均为虚构 DEMO 活动，不代表真实漫展或票务信息。' if demo else
-            '选择城市，订阅该市及所辖区县、乡镇已收录的活动。数据来源有限，不能保证完整覆盖。')
+            '选好城市，把已收录的漫展添加到你常用的日历。无需账号，日历会按应用自身的周期检查更新。')
     verified = max((event["updated_at"] for event in items), default=None)
     freshness = ('最近来源观察／人工核对：' + text(verified) + '（UTC）' if verified else
                  '尚无已收录活动；没有可报告的最近观察时间。')
-    content = f'''<section class="hero"><p class="eyebrow">CITY CALENDAR / 全国城市</p>
-    <h1>你的漫展日程，<br><em>按城市</em>订阅。</h1><p class="hero-lead">{lead}</p>
-    <p class="coverage">目前收录 {len(items)} 场活动，分布在 {populated} / {len(city_list)} 个城市。多数城市为 0，不代表没有漫展。</p>
-    <p class="hint">{freshness}</p></section>
-    <label for="city-search">搜索城市／省份</label>
-    <input id="city-search" type="search" placeholder="例如：北京、广东深圳" autocomplete="off">
-    <nav class="city-nav" aria-label="选择城市">{links}</nav>
-    {''.join(sections)}'''
-    return shell("北京 / 上海", content, demo=demo)
+    content = f'''<section class="hero"><p class="eyebrow">漫展日历 / 按城市订阅</p>
+    <h1>漫展消息太多？<br>订阅一座城市。</h1><p class="hero-lead">{lead}</p>
+    <a class="hero-action" href="#city-picker">选择城市 <span aria-hidden="true">↗</span></a>
+    <p class="hero-footnote">一座城市，一条长期订阅的日历地址。不是购票或活动报名。</p></section>
+    <section class="picker" id="city-picker"><div class="picker-intro"><p class="eyebrow">01 / FIND YOUR CITY</p>
+      <h2>先找你的城市。</h2><p>输入城市或省份，再从结果中选择。即使暂时没有活动，也可以先订阅。</p></div>
+      <div class="picker-control"><label for="city-search">城市或省份</label>
+      <input id="city-search" type="search" placeholder="例如：北京、广东深圳" autocomplete="off"
+        aria-controls="city-nav">
+      <details class="city-directory" id="city-directory"><summary>浏览全部 {len(city_list)} 个城市 <span aria-hidden="true">＋</span></summary>
+        <nav class="city-nav" id="city-nav" aria-label="选择城市">{links}</nav>
+        <p class="search-empty" hidden>没有匹配的城市，请换一个关键词试试。</p></details>
+      <noscript><p class="hint">搜索需要启用 JavaScript；也可以展开上方目录逐个选择城市。</p></noscript></div></section>
+    {''.join(sections)}
+    <section class="guide" id="how-to-subscribe"><div class="guide-intro"><p class="eyebrow">03 / ADD TO YOUR CALENDAR</p>
+      <h2>最后，在日历里添加。</h2><p>复制链接后，在你使用的应用里找“通过 URL 订阅”，不要选择只导入一次的 .ics 文件。不同应用的刷新时间由应用决定。</p></div>
+      <div class="guide-options">
+        <details><summary>iPhone / iCloud 日历</summary><p>打开「日历」中的日历列表，选择添加日历，再选择添加订阅日历并粘贴地址。具体菜单以设备系统版本为准。</p><a href="https://support.apple.com/en-us/102301" target="_blank" rel="noopener noreferrer">Apple 官方说明 ↗</a></details>
+        <details><summary>Google 日历（电脑网页）</summary><p>在左侧「其他日历」旁选择添加，再选择「通过网址」，粘贴订阅地址。Google 的此操作需要在电脑浏览器中完成。</p><a href="https://support.google.com/calendar/answer/37100" target="_blank" rel="noopener noreferrer">Google 官方说明 ↗</a></details>
+        <details><summary>Outlook 网页版</summary><p>进入日历，选择「添加日历」→「从 Web 订阅」，粘贴地址并保存。不同 Outlook 版本的菜单可能不同。</p><a href="https://support.microsoft.com/en-us/outlook/import-or-subscribe-to-a-calendar-in-outlook-com-or-outlook-on-the-web" target="_blank" rel="noopener noreferrer">Microsoft 官方说明 ↗</a></details>
+      </div></section>
+    <aside class="data-note"><p class="eyebrow">关于收录</p><p class="coverage">目前收录 {len(items)} 场活动，分布在 {populated} / {len(city_list)} 个城市。多数城市为 0，不代表没有漫展。</p>
+      <p>日历只包含已录入且通过字段校验的活动，无法保证覆盖全部漫展；订阅前后都请核对主办方公告。{freshness}</p></aside>'''
+    return shell("订阅城市日历", content, demo=demo)
 
 
 def detail(event, city, demo):
