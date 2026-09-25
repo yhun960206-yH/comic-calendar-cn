@@ -1,0 +1,73 @@
+{
+  "collected_at": "2026-09-25T05:22:33Z",
+  "method": "One-time AI-assisted search across provincial capitals and major cities for Oct 2026 onward. Priority order per project rule: organizer official site > mirror of a verified organizer account (original platform not fetched) > independent listings that agree on name, dates and venue. No Bilibili private endpoint, no cookie/fingerprint emulation, no Douyin API, no bulk third-party database import, and no article prose, images or ticket prices copied.",
+  "accepted": [
+    {
+      "event_id": "ai-acc-changsha-46-2026",
+      "tier": "verified organizer account via media mirror",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5333343413732136.html",
+      "venue_address_crosscheck": "https://www.csgjhzzx.com/news/1655.html",
+      "facts": "Mirror shows the ACC organizer account (verified as 广州漫通文化发展有限公司) posting 第46届长沙ACC动漫展, 2026-10-01 to 10-03, 长沙国际会展中心（光达）. The venue operator's own published address is 黄兴镇国展路118号 in 长沙县, which the organizer's parenthetical 光达 (metro station) is consistent with.",
+      "note": "A separate sponsor-brand post carries the same dates and venue but was not used as the source because the author is a title sponsor, not the organizer.",
+      "rights": "Individual event facts and URLs only; original Weibo not fetched; mirror robots permits public pages; no prose or images copied."
+    },
+    {
+      "event_id": "ai-mengxiang-chongqing-21-2026",
+      "tier": "verified organizer account via media mirror",
+      "organizer_announcement_mirror": "https://www.sina.cn/news/detail/5335861584987170.html",
+      "facts": "Mirror shows the 重庆梦乡动漫展 organizer account posting 重庆第二十一届梦乡动漫展, 10月1日-10月4日, 重庆国际博览中心. An independent local listing adds the venue address 悦来大道66号.",
+      "note": "Same organizer brand as the Xi'an 梦乡 series but a separate edition and city, so a distinct UID was created.",
+      "rights": "Facts and URLs only; original platform not fetched; no prose, images or ticket data copied."
+    },
+    {
+      "event_id": "ai-haianxian-xiamen-2026",
+      "tier": "aggregator listing with an independent matching listing",
+      "aggregator_listing": "https://xm.bendibao.com/xiuxian/202692/97329.shtm",
+      "independent_matching_listing": "http://xiamen.manmankan.com/huodong/13969/",
+      "facts": "Both listings give 厦门·海岸线动漫游戏嘉年华SP（国庆特别版）, 2026-10-01 to 10-02 10:00-17:00, 厦门国际会展中心B3（会展路198号）, and both point to Bilibili as the official ticketing channel. A third local summary page lists the same name, dates and venue.",
+      "note": "Weaker than organizer tier: the organizer account exists but no accessible announcement for this specific edition was found. Kept because two independent listings agree exactly and the venue is named to hall level. Flagged for upgrade if the organizer publishes directly.",
+      "rights": "Facts and URLs only; ticketing prices in the sources were deliberately not imported."
+    },
+    {
+      "event_id": "ai-wacgw-kunming-21-2026",
+      "tier": "aggregator listing with an independent matching listing",
+      "aggregator_listing": "https://km.bendibao.com/xiuxian/2026917/107463.shtm",
+      "independent_matching_listing": "https://gameinns.com/watch/mucmqzbzo7p1",
+      "facts": "The local listing gives 2026-10-01 to 10-02, 09:30-17:30, 昆明滇池国际会展中心, 官渡区环湖东路. An unrelated game publisher's cross-promotion notice independently names 第二十一届云南动漫游戏嘉年华（WACGW） for 10月1日-2日 at 昆明滇池国际会展中心.",
+      "note": "Weaker than organizer tier; both sources agree on event name, edition number, dates and venue. Address is the venue's commonly published street (环湖东路) rather than a gate number.",
+      "rights": "Facts and URLs only; no prose, images or ticket prices copied."
+    }
+  ],
+  "excluded_examples": [
+    {
+      "candidate": "第二十一届沈阳SSCA动漫游戏博览会（2026-10-01—04，辽宁工业展览馆）",
+      "intended_source": "https://www.sina.cn/news/detail/5328872150141594.html",
+      "reason": "The mirror page could not be reproduced on direct fetch at collection time (server returned an empty document with several user agents and referers), so the announcement cannot be re-verified by a reader following our link. A secondary ticketing listing returns HTTP 404. Held out of the calendar until an accessible source exists, even though both indexed copies agreed on dates and venue."
+    },
+    {
+      "candidate": "西安第二十七届梦乡动漫展（2026-10-01—04）",
+      "reason": "Venue 西安临空会展中心 is branded Xi'an but physically in 西咸新区空港新城 / 咸阳市渭城区 (广仁西路15号). A separate listing claims 西安国际会展中心 instead, contradicting the organizer. Needs an explicit city-attribution decision before publishing."
+    },
+    {
+      "candidate": "福州数字互动娱乐展（2026-10 国庆）",
+      "reason": "Organizer promotion says 10-01 to 10-03 hall 9; the venue's own schedule page says 10-01 to 10-02. Unresolved conflict."
+    },
+    {
+      "candidate": "天津·NJ动漫游戏博览会、天津国庆绮梦星游戏动漫展、深圳·梦漫星河动漫嘉年华、昆明滇次元国风动漫嘉年华",
+      "reason": "Only a single aggregator listing (and, for Shenzhen, a short-video post) supports each. Not enough independent corroboration for name, dates and venue."
+    },
+    {
+      "candidate": "上海漫画周（2026-11-13—15，上海世博展览馆）",
+      "reason": "Official and well-sourced, but it is a comics/creative-industry programme attached to a children's book fair rather than a 漫展/同人展/动漫游戏展, so it does not match this calendar's stated scope. Add only if the user wants it."
+    },
+    {
+      "candidate": "Rainbow Gala 34（香港，2026-12-25—26）",
+      "reason": "Official site still words the dates as 預定 (tentative); the project only publishes confirmed dates."
+    }
+  ],
+  "coverage_gaps": [
+    "No future confirmed event found for 上海, 杭州, 苏州, 合肥, 福州, 厦门以外福建城市, 太原, 石家庄, 济南, 南宁, 贵阳, 兰州, 银川, 西宁, 呼和浩特, 大连, 哈尔滨以外东北城市, 拉萨.",
+    "Searches repeatedly returned past editions and used stale season tables; future dates are usually announced 4-8 weeks ahead, so most cities outside the National Day window have no published dates yet.",
+    "Bilibili and Douyin were not collected. See the boundary notes in the companion report."
+  ]
+}

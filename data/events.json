@@ -111,6 +111,62 @@
       "venue_address": "香港湾仔博览道1号",
       "source_url": "https://www.hkcomiccon.com/",
       "attribution": "日期与展厅据 Hong Kong Comic Con 官网；地址据香港动漫电玩节官方场馆说明。仅整理短事实，变化请以主办方为准。"
+    },
+    {
+      "event_id": "ai-acc-changsha-46-2026",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "430100",
+      "title": "第46届长沙ACC动漫展",
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-04",
+      "updated_at": "2026-09-25T05:22:33Z",
+      "venue_name": "长沙国际会展中心",
+      "venue_address": "湖南省长沙市长沙县黄兴镇国展路118号",
+      "source_url": "https://www.sina.cn/news/detail/5333343413732136.html",
+      "attribution": "主办方认证账号公告经新浪镜像（原站未直访）；场馆地址据场馆运营方公开文件。仅整理短事实，变化请以主办方为准。"
+    },
+    {
+      "event_id": "ai-mengxiang-chongqing-21-2026",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "500100",
+      "title": "重庆第二十一届梦乡动漫展",
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-05",
+      "updated_at": "2026-09-25T05:22:33Z",
+      "venue_name": "重庆国际博览中心",
+      "venue_address": "重庆市渝北区悦来大道66号",
+      "source_url": "https://www.sina.cn/news/detail/5335861584987170.html",
+      "attribution": "主办方认证账号公告经新浪镜像（原站未直访）；场馆地址据公告及场馆常规地址。仅整理短事实，变化请以主办方为准。"
+    },
+    {
+      "event_id": "ai-haianxian-xiamen-2026",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "350200",
+      "title": "厦门·海岸线动漫游戏嘉年华SP（国庆特别版）",
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-03",
+      "updated_at": "2026-09-25T05:22:33Z",
+      "venue_name": "厦门国际会展中心B3",
+      "venue_address": "福建省厦门市思明区会展路198号",
+      "source_url": "https://xm.bendibao.com/xiuxian/202692/97329.shtm",
+      "attribution": "日期、场馆与地址据本地宝活动公告（其标注官方售票渠道为 B 站会员购），另有独立活动页内容一致；未经主办方原站直访，变化请以主办方为准。"
+    },
+    {
+      "event_id": "ai-wacgw-kunming-21-2026",
+      "revision": 0,
+      "status": "confirmed",
+      "city_code": "530100",
+      "title": "第二十一届云南动漫游戏嘉年华（WACGW）",
+      "start_date": "2026-10-01",
+      "end_date": "2026-10-03",
+      "updated_at": "2026-09-25T05:22:33Z",
+      "venue_name": "昆明滇池国际会展中心",
+      "venue_address": "云南省昆明市官渡区环湖东路",
+      "source_url": "https://km.bendibao.com/xiuxian/2026917/107463.shtm",
+      "attribution": "日期与场馆据本地宝活动公告，另有第三方联动公示显示同届活动同期同场馆；未经主办方原站直访，变化请以主办方为准。"
     }
   ]
 }
