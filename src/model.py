@@ -11,6 +11,8 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 CITY_CODES = {row["code"]: row["name"] for row in json.loads(
     (ROOT / "config/cities.json").read_text(encoding="utf-8"))["cities"]}
+CITY_PROVINCES = {row["code"]: row["province"] for row in json.loads(
+    (ROOT / "config/cities.json").read_text(encoding="utf-8"))["cities"]}
 AREA_TO_CITY = json.loads((ROOT / "config/area_to_city.json").read_text(encoding="utf-8"))["area_to_city"]
 REQUIRED = {"event_id", "revision", "status", "city_code", "title", "start_date",
             "end_date", "updated_at", "venue_name", "venue_address", "source_url"}
