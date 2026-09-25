@@ -1,0 +1,28 @@
+{
+  "collected_at": "2026-09-25T02:21:12Z",
+  "method": "AI-assisted one-time research; public organizer announcement and government venue address, not an automated third-party scrape",
+  "accepted": [
+    {
+      "event_id": "ai-cicf-agf-guangzhou-2026",
+      "organizer_announcement": "https://www.cicfexpo.com/index.php?m=content&c=index&a=show&catid=32&id=1224",
+      "organizer_date_and_venue_crosscheck": "https://www.cicfexpo.com/index.php?m=content&c=index&a=show&catid=32&id=1198",
+      "venue_address_crosscheck": "https://www.haizhu.gov.cn/gzhzcg/gkmlpt/content/10/10007/post_10007276.html",
+      "observations": [
+        "2026 CICF×AGF 广州动漫游戏盛典，官方公告明确 2026-10-02 至 2026-10-05，于广州保利世贸博览馆举办。",
+        "海珠区政府公示中，该场馆地址为广州市海珠区新港东路1000号。",
+        "未从来源推断每天开馆时间；使用全天日期，end_date 为 2026-10-06（排他）。"
+      ],
+      "rights": "Only event facts, canonical URLs, and a short attribution are stored; article prose, images, ticket content, and other creative material are not copied. Official site robots.txt permits public news pages."
+    }
+  ],
+  "excluded_examples": [
+    {
+      "candidate": "IJOY30 北京 / 武汉 CGF 官方微博",
+      "reason": "微博 robots.txt 对通用采集器禁止活动页；只看到搜索摘要，未直接核实原文，不入库。"
+    },
+    {
+      "candidate": "RED LAND2026 上海",
+      "reason": "政府公告仅给出复兴岛片区，未能在同一来源确定精确活动入口或地址；不编造场馆地址。"
+    }
+  ]
+}

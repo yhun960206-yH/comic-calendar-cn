@@ -1,10 +1,10 @@
-# 全国城市漫展日历订阅（已接入部分兽展）
+# 全国城市漫展日历订阅（兽展自动源 + 按需 AI 采集）
 
 **已部署站点：** https://yhun960206-yh.github.io/comic-calendar-cn/
 
-**订阅链接示例：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。公开兽展源已自动收录并部署（[首次运行](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36083152285) · [二次稳定性验证](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36083232824)）；当前示例 15 条，订阅源返回 HTTP 200 和 `text/calendar`；定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
+**订阅链接示例：** [北京](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/110100.ics) · [上海](https://yhun960206-yh.github.io/comic-calendar-cn/feeds/cities/310100.ics)。公开兽展源已自动收录并部署（[首次运行](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36083152285) · [二次稳定性验证](https://github.com/yhun960206-yH/comic-calendar-cn/actions/runs/36083232824)）；首次无密钥抓取 15 条兽展，另外按需 AI 核对新增 1 条普通动漫展；订阅源返回 HTTP 200 和 `text/calendar`；定时运行与 Apple/Google/Outlook 真机订阅尚未验收。
 
-Python 3 标准库构建的静态首页、活动详情页、372 个城市级聚合订阅源与 JSON。城市订阅包含所属区县、乡镇与街道的活动，前提是活动来源提供可核对的具体地点。行政区划快照不等于活动来源，不保证全国活动全量覆盖。**`data/events.json` 为空；活动可从 FEC 兽展日历公开页面自动采集，但该来源只覆盖兽展子类，不代表全国漫展。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。未配置 `FEC_API_KEY` 时工作流读取 FEC 官网公开的结构化活动页；配置后尝试 FEC 官方开放 API。
+Python 3 标准库构建的静态首页、活动详情页、372 个城市级聚合订阅源与 JSON。城市订阅包含所属区县、乡镇与街道的活动，前提是活动来源提供可核对的具体地点。行政区划快照不等于活动来源，不保证全国活动全量覆盖。**`data/events.json` 保存按需 AI 核对的记录；FEC 兽展日历公开页面则由现有工作流自动采集，但这两种来源都不代表全国漫展全量覆盖。** `data/seed_events.json` 全部为虚构 DEMO，不可用于正式部署。未配置 `FEC_API_KEY` 时工作流读取 FEC 官网公开的结构化活动页；配置后尝试 FEC 官方开放 API。
 
 ## 本地验证和预览
 
@@ -33,9 +33,9 @@ python3 -m http.server 8000 --directory /tmp/comic-calendar-preview
 
 无需密钥时，工作流读取 [FEC·兽展日历](https://www.furrycons.cn/) 公开首页标为「综合性展会」的链接与活动页内的 schema.org Event JSON-LD；仅采集名称、全天日期、城市、场馆、来源 URL，不抓图片、描述，也不推断购票/导航与开放时间。官网公开数据按 [CC BY-SA 4.0](https://www.furrycons.cn/about) 许可使用，活动本身继续署名且链接原页；源站 robots.txt 未禁止此路径。请求限于首页及最多 40 个公开活动页，每页之间留间隔。来源页面格式、网络访问或质量门槛出错时停止部署并保留上一版。首页并非全部兽展、也不等于全部漫展；活动从首页消失不代表取消，旧活动仍保留且可能过期。2026-09-25 线上运行采集首页 21 个候选链接，其中 15 条通过字段检查、6 条隔离；这不是全国全部漫展。
 
-`data/events.json` 仍可存放已明确核实的人工记录（目前空），但自动路径不依赖人工录入。`src/sources/fec.py` 是**按需启用的授权 API 适配器**：先在 FEC 工作台取得 API Key。`python3 -m src.sources.fec --output /tmp/fec-candidates.json` 是本地只读候选试运行；来源地址字段空白/过短、地区歧义或未确认状态的记录会隔离；适配器无法仅凭地址文字证明场馆名和地图定位正确。将密钥设置为仓库的 Actions Secret `FEC_API_KEY` 后，同一发布工作流才会调用 `src.sources.pipeline`：先从上次已发布 Pages 数据读取检查点，拉取完整 API 列表、保留失联记录并递增变化版本、校验，再构建和部署。源失败、检查点失联或记录突然清空时**不部署，保留旧站**；密钥移除后可退回 FEC 公共网页，旧记录不删除。检查点由 Pages 静态 JSON 提供，非事务数据库；两次手动部署验证了 UID 与版本稳定，但不能保证所有客户端的刷新行为。此流程尚未持真实密钥调用过 API，不能声称 API 路径已采集活动；若来源仅有地区、没有可用地址，则不会发布；地址真实性、场馆名称和地图定位仍有来源质量风险。FEC 数据须保留 CC BY-SA 4.0 署名及相同方式共享条件。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但没有这些平台适用的采集许可，FEC API 密钥也未配置。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
+`data/events.json` 目前保存 1 条按需 AI 核对的普通动漫展；[项目级采集 Skill](.pi/skills/comic-event-collector/SKILL.md) 说明如何再次运行：在受信任的项目目录重新打开 Pi 会话，使用 `/skill:comic-event-collector`，或请 AI 读取该文件并采集。证据保存在 `data/collection_evidence/`。此 Skill 被调用时 AI 会检索和校验，但**推到 GitHub 并不会自动定时调用 AI**；现有定时工作流只会更新 FEC 来源，并持续合并本文件的记录。`src/sources/fec.py` 是**按需启用的授权 API 适配器**：先在 FEC 工作台取得 API Key。`python3 -m src.sources.fec --output /tmp/fec-candidates.json` 是本地只读候选试运行；来源地址字段空白/过短、地区歧义或未确认状态的记录会隔离；适配器无法仅凭地址文字证明场馆名和地图定位正确。将密钥设置为仓库的 Actions Secret `FEC_API_KEY` 后，同一发布工作流才会调用 `src.sources.pipeline`：先从上次已发布 Pages 数据读取检查点，拉取完整 API 列表、保留失联记录并递增变化版本、校验，再构建和部署。源失败、检查点失联或记录突然清空时**不部署，保留旧站**；密钥移除后可退回 FEC 公共网页，旧记录不删除。检查点由 Pages 静态 JSON 提供，非事务数据库；两次手动部署验证了 UID 与版本稳定，但不能保证所有客户端的刷新行为。此流程尚未持真实密钥调用过 API，不能声称 API 路径已采集活动；若来源仅有地区、没有可用地址，则不会发布；地址真实性、场馆名称和地图定位仍有来源质量风险。FEC 数据须保留 CC BY-SA 4.0 署名及相同方式共享条件。此流程**不会抓取 B 站、抖音或第三方票务页**；用户明确选择“尽力覆盖”，但没有这些平台适用的采集许可，FEC API 密钥也未配置。公开网页可以浏览不等于允许批量自动采集。[B 站使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)对未经许可的自动程序取数有限制；抖音开放平台须按[权限与授权](https://open.douyin.com/platform/resource/docs/develop/permission/overall-permission)使用接口。[兽展日历](https://www.furrycons.cn/about)的数据以 CC BY-SA 4.0 提供，但 API 需要申请密钥且仅覆盖兽展子类；即使接入，也不能宣称全国漫展全量。
 
-## 真实活动人工录入契约
+## 真实活动输入契约
 
 `config/cities.json` 包含 372 个城市级聚合单位（含直辖市、省直管县级市），保留北京 `110100`、上海 `310100` 既有链接。`config/area_to_city.json` 映射 4.2 万余省市区县、乡镇/街道代码到所属城市，乡镇活动按所属城市汇总。来源为 [huazone/regions_data](https://github.com/huazone/regions_data) 2025-12-24 快照，MIT 许可见 `licenses/regions_data.LICENSE`；行政变更需人工核对并更新快照，未覆盖或歧义地点不得猜测城市。`data/events.json` 为 `{ "events": [ ... ] }`；没有核实的活动就保留空数组。以下字段每条均必填，除 `revision` 外为字符串：
 
