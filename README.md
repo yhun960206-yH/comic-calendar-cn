@@ -62,6 +62,6 @@ python3 -m http.server 8000 --directory /tmp/comic-calendar-preview
 
 `public/feeds/cities/{city_code}.ics` 为每个支持的城市单位生成完整日历，即使零活动。事件 UID 为 `<event_id>@comic-calendar.invalid`，`SEQUENCE` 用修订号，取消使用 `STATUS:CANCELLED`、标题标记已取消并保持 UID；全天事件使用排他的 DTEND；已核实开放时间时写入精确 UTC DTSTART/DTEND。ICS 为 UTF-8 CRLF、RFC 5545 文本转义和 75-octet 内容行折行。发布过的取消记录继续留在源文件以传播给订阅用户。
 
-`public/events.json` 为 `{ "demo": boolean, "cities": [{"code", "name", "feed_url", "event_count"}], "events": [输入活动...] }`；`public/status.json` 为 `{ "ok": true, "demo": boolean, "event_count": number, "last_verified_at": UTC时间或null, "cities": [同上] }`。首页显示最近人工核对时间（不是最后成功部署时间）。订阅 URL 是从 HTTPS `--base-url` 拼接的绝对地址。`--demo` 时两个 JSON 的 `demo` 为 true，ICS 日历名与每条摘要/描述均有 DEMO 标记，页面也有显著警示。
+`public/events.json` 为 `{ "demo": boolean, "cities": [{"code", "name", "feed_url", "event_count"}], "events": [输入活动...] }`；`public/status.json` 为 `{ "ok": true, "demo": boolean, "event_count": number, "last_verified_at": UTC时间或null, "cities": [同上] }`。首页显示最近来源观察／人工核对时间（不是最后成功部署时间，自动抓取不等于人工核实）。订阅 URL 是从 HTTPS `--base-url` 拼接的绝对地址。`--demo` 时两个 JSON 的 `demo` 为 true，ICS 日历名与每条摘要/描述均有 DEMO 标记，页面也有显著警示。
 
 构建前会完整验证输入，并在同一父目录准备整棵输出树（包含网页/样式/脚本、JSON 和 ICS）；成功后会**替换整个输出目录**，不得在 `public/` 手工维护资源。准备或验证失败不影响旧版；目录替换时两次重命名之间可能有短暂不可读窗口，不提供并发读严格原子性或断电级事务。无需第三方包；构建器本身不联网，`src.sources.pipeline` 在部署前联网采集 FEC 公开结构化展会数据。当前架构图是调研阶段的目标架构，不代表现有项目具备数据库或全国全量采集。
