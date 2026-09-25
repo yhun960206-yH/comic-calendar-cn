@@ -22,7 +22,7 @@ python3 -m http.server 8000 --directory /tmp/comic-calendar-preview
 
 本地独立演示请输出到单独目录：`python3 -m src.build --base-url https://example.github.io/demo/ --output /tmp/comic-calendar-demo --demo`。演示首页、详情页、JSON 和 ICS 都显著标注 DEMO；**不得用 `--demo` 发布到 Pages**。`--demo` 才默认读取 `data/seed_events.json`，平常只读取 `data/events.json`。`--input` 可指定本地已审核的 JSON（显式覆盖默认或演示文件），但 seed 文件必须搭配 `--demo`；构建器不联网。`python3 -m src.validate --input path/to/events.json` 可单独验证。
 
-首页搜索/选择城市后可查看活动和复制相应的 HTTPS 绝对 ICS 地址；没有 JS 时各城市链接仍能直接访问。详情页显示活动日期、地点、嘉宾（如有）、UTC 核对时间、票务/导航及公告来源；日期展示为含首尾日，输入 `end_date` 则排他。无已收录活动时会直说，无虚构卡片或票务按钮。活动文本经 HTML 转义，链接在离线验证后输出。网站支持 `https://域名/仓库名/` 等子路径部署。
+首页先引导选择城市、复制相应的 HTTPS 绝对 ICS 地址，再说明如何在日历应用中通过 URL 订阅；完整目录可展开搜索，没有 JS 时各城市锚点仍可直接访问。设计理由与用户路径见 [界面设计说明](docs/interface-design.md)。详情页显示活动日期、地点、嘉宾（如有）、UTC 核对时间、票务/导航及公告来源；日期展示为含首尾日，输入 `end_date` 则排他。无已收录活动时会直说，无虚构卡片或票务按钮。活动文本经 HTML 转义，链接在离线验证后输出。网站支持 `https://域名/仓库名/` 等子路径部署。
 
 ## GitHub Pages 配置（需仓库管理员完成）
 
