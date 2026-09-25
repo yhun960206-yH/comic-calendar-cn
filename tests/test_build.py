@@ -59,10 +59,22 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(json.loads((self.output / "status.json").read_text())["event_count"], 0)
         home = (self.output / "index.html").read_text(encoding="utf-8")
         self.assertIn("暂无已收录活动", home)
-        self.assertIn("自动来源需要有效接口权限", home)
+        self.assertIn("目前自动来源只覆盖部分兽展", home)
+        self.assertIn("目前收录 0 场活动，分布在 0 / 372 个城市", home)
         self.assertIn(BASE + "feeds/cities/110100.ics", home)
         self.assertIn(BASE + "feeds/cities/310100.ics", home)
         self.assertFalse(list((self.output / "events").glob("*.html")))
+
+    def test_populated_city_is_visible_before_empty_cities(self):
+        self.write_events([sample(city_code="310100")])
+        self.publish()
+        home = (self.output / "index.html").read_text(encoding="utf-8")
+        self.assertIn("目前收录 1 场活动，分布在 1 / 372 个城市", home)
+        self.assertLess(home.index('data-city="310100"'), home.index('data-city="110100"'))
+        self.assertIn('data-city="310100" data-count="1"', home)
+        self.assertIn('data-city="110100" data-count="0"', home)
+        script = (self.output / "assets/site.js").read_text(encoding="utf-8")
+        self.assertIn('Number(link.dataset.count) > 0', script)
 
     def test_change_and_cancellation_keep_uid_and_increment_sequence(self):
         self.write_events([sample()])
